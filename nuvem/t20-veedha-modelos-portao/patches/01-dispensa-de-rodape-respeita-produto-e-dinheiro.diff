@@ -1,0 +1,24 @@
+--- a/lib/portao.js
++++ b/lib/portao.js
+@@ -2210,7 +2210,9 @@
+  * o rodapé volta a ser obrigatório mesmo que nenhum detector tenha falado. Existe para o caso
+  * de um detector deixar passar: a dispensa nunca pode depender de UMA peça só.
+  */
+-const SINAL_DE_DINHEIRO = /(R\$|\breais?\b|%|\bpor\s*cento\b|\bcdi\b|\bipca\b|\bselic\b|\btaxas?\b|\brendiment|\brentabilidade|\bjuros?\b|\baplica[cç][oõaã]|\baplicar\b|\binvestir\b|\binvestiment|\bresgat|\bvencimento\b|\bcarencia\b|\bcar[eê]ncia\b|\bcdb\b|\blci\b|\blca\b|\bcri\b|\bcra\b|\bdeb[eê]ntur|\btesouro\b|\bfundos?\b|\bcoe\b|\bprevid[eê]nc|\bcons[oó]rcios?\b|\bseguros?\b|\bc[aâ]mbio\b|\bd[oó]lar\b|\bcarteira\b|\bposi[cç][aã]o\b|\bsaldo\b|\bpatrim[oô]nio\b|\bcustod|\bcorretagem\b|\bganh(a|ar|ando|o|os)\b|\blucr|\bretorno\b|\brende(r|ndo)?\b|\d[\d.,]*\s*(mil|mi|milh|k\b))/i;
++// 14/10/2026 (tarefa 20 da nuvem): deposito, pix, TED, transferencia e boleto tambem sao dinheiro (instrucao de deposito saia
++// como conversa pura, sem rodape).
++const SINAL_DE_DINHEIRO = /(R\$|\bdeposit|\bpix\b|\bted\b|\btransfer[eê]ncia|\bboleto|\breais?\b|%|\bpor\s*cento\b|\bcdi\b|\bipca\b|\bselic\b|\btaxas?\b|\brendiment|\brentabilidade|\bjuros?\b|\baplica[cç][oõaã]|\baplicar\b|\binvestir\b|\binvestiment|\bresgat|\bvencimento\b|\bcarencia\b|\bcar[eê]ncia\b|\bcdb\b|\blci\b|\blca\b|\bcri\b|\bcra\b|\bdeb[eê]ntur|\btesouro\b|\bfundos?\b|\bcoe\b|\bprevid[eê]nc|\bcons[oó]rcios?\b|\bseguros?\b|\bc[aâ]mbio\b|\bd[oó]lar\b|\bcarteira\b|\bposi[cç][aã]o\b|\bsaldo\b|\bpatrim[oô]nio\b|\bcustod|\bcorretagem\b|\bganh(a|ar|ando|o|os)\b|\blucr|\bretorno\b|\brende(r|ndo)?\b|\d[\d.,]*\s*(mil|mi|milh|k\b))/i;
+ 
+ /**
+  * SINAL DE OFERTA — urgência, escassez, promessa e comparação.
+@@ -2244,6 +2246,10 @@
+   if (!r || !Array.isArray(r.bloqueios)) return false;
+   if (r.bloqueios.some((b) => b.regra !== 'R08')) return false;
+   if ((r.revisar || []).some((x) => x.origem === 'conteudo' && x.regra !== 'R38')) return false;
++  // 14/10/2026 (tarefa 20 da nuvem): produto achado pelo proprio portao tambem desfaz a dispensa. A lista
++  // SINAL_DE_DINHEIRO abaixo nao tem "renda fixa", "titulo publico", "multimercado", "bitcoin" e outros que o
++  // detector de produto conhece: com o rodape oficial vazio, essas mensagens saiam REVISAR sem rodape (art. 24).
++  if ((r.revisar || []).some((x) => x.regra === 'R37' && x.origem === 'termo' && /^termo financeiro \(produto\)/.test(x.motivo || ''))) return false;
+ 
+   const t = String(texto || '');
+   if (SINAL_DE_DINHEIRO.test(t)) return false;
