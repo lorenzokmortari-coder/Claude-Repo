@@ -1,0 +1,121 @@
+<title>Nuvem · Veedha · kit de dados públicos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), tabela de entregáveis no topo, detalhes abaixo */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fact { border-top: 2px solid var(--accent); padding-top: 8px; display: grid; gap: 2px; }
+.fact b { font: 600 22px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Veedha · tarefa 2 de 4 · 14/10/2026</div>
+    <h1>Kit de dados públicos</h1>
+    <p class="lead">Módulo Python para medir produtos contra o CDI usando só fonte oficial e aberta: Banco Central (SGS e Focus), CVM (Informe Diário de fundos) e Tesouro Transparente, além de um calendário de dias úteis. Não usa nada da ANBIMA e não tem dado de cliente.</p>
+    <div class="chips">
+      <span class="chip ok">13 testes offline passaram</span>
+      <span class="chip warn">5 testes de rede pulados</span>
+      <span class="chip bad">exemplo real não rodou</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Entregáveis</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Arquivo</th><th>Status</th><th>O que é</th></tr></thead>
+      <tbody>
+        <tr><td><code>dadospub.py</code></td><td><span class="chip ok">entregue</span></td><td>CDI diário e acumulado, Selic, IPCA, Focus mais recente, cota de fundo pelo CNPJ e rentabilidade contra o CDI, taxa e PU do Tesouro Direto, calendário de dias úteis e o exemplo do maior fundo em 12 meses.</td></tr>
+        <tr><td><code>test_dadospub.py</code></td><td><span class="chip ok">13 passaram</span> <span class="chip warn">5 pulados</span></td><td>Os testes offline cobrem as contas e a leitura dos formatos oficiais. Os testes de rede batem nas fontes reais e são pulados, com o nome do host, quando ele não responde.</td></tr>
+        <tr><td><code>LEIA-ME.md</code></td><td><span class="chip ok">entregue</span></td><td>Funções, convenções, endereços (com o que foi e o que não foi conferido), testes e limites.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Exemplo real: maior fundo, últimos 12 meses contra o CDI</h2>
+    <p><b>Não rodou nesta sessão.</b> A rede da nuvem bloqueia <code>dados.cvm.gov.br</code> e <code>api.bcb.gov.br</code>, então não há número real para mostrar e nenhum foi inventado. No PC, o exemplo sai com um comando:</p>
+<pre>pip install pandas requests pytest
+python -m pytest -q test_dadospub.py   # 18 testes: os 5 de rede devem passar no PC
+python dadospub.py exemplo             # maior PL do Informe Diário mais recente, 12 meses × CDI</pre>
+    <p>A saída mostra o nome e o CNPJ do fundo, as datas efetivas das cotas, o número de dias úteis, o PL final, o retorno do fundo, o retorno do CDI na mesma janela e o % do CDI. Para um fundo específico: <code>dp.rentabilidade_vs_cdi("CNPJ", "2025-10-14", "2026-10-14")</code>.</p>
+    <p class="lead">Só para conferir a ordem de grandeza (<b>não verificado</b>): sites de terceiros mostravam o CDI de 12 meses até agosto de 2026 entre 13,98% e 14,65%, valores que divergem entre si. O número que vale é o da série 12 do SGS, calculado pelo módulo.</p>
+  </section>
+
+  <section>
+    <h2>Números principais</h2>
+    <div class="facts">
+      <div class="fact"><b>13 / 13</b><span>testes offline aprovados</span></div>
+      <div class="fact"><b>0 / 5</b><span>testes de rede executados (hosts bloqueados)</span></div>
+      <div class="fact"><b>249</b><span>dias úteis em 2026 pelo calendário do módulo</span></div>
+      <div class="fact"><b>10 anos</b><span>limite do SGS por consulta; o módulo divide em janelas</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decisões que afetam o número</h2>
+    <ul>
+      <li>O CDI acumulado usa as taxas dos dias úteis em [início, fim). É a mesma janela de cota(fim) ÷ cota(início) − 1, então o % do CDI compara o fundo e o CDI exatamente nas datas das cotas.</li>
+      <li>Em data sem cota vale a última cota disponível antes dela. As datas efetivas voltam no resultado.</li>
+      <li>O calendário inclui feriados nacionais, Carnaval, Sexta-feira Santa, Corpus Christi e 20/11 (a partir de 2024). O teste de rede compara o calendário com os dias em que o BC publicou CDI.</li>
+      <li>O leitor do Informe Diário aceita o layout antigo (<code>CNPJ_FUNDO</code>) e o pós-CVM 175 (<code>CNPJ_FUNDO_CLASSE</code> e <code>ID_SUBCLASSE</code>). O CNPJ alfanumérico de 2026 já é aceito.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Bloqueado nesta sessão</b> (HTTP 403 no proxy de saída): <code>api.bcb.gov.br</code>, <code>olinda.bcb.gov.br</code>, <code>dados.cvm.gov.br</code>, <code>www.tesourotransparente.gov.br</code>.</li>
+      <li>Conferido pelo buscador: o padrão do endereço do SGS e o limite de 10 anos (filtro de data obrigatório desde 26/03/2025); o nome dos arquivos mensais do Informe Diário (outubro/2026 aparecia atualizado em 10/10/2026); e a existência do conjunto do Tesouro Direto no Tesouro Transparente.</li>
+      <li>Não verificado: o endpoint do Focus, a pasta HIST da CVM, as colunas pós-CVM 175, o recurso exato do CSV do Tesouro e as colunas dele, e o <code>cad_fi.csv</code> (usado só para o nome do fundo).</li>
+      <li>As amostras dos testes offline foram escritas à mão no layout de cada fonte e não são cotações reais.</li>
+      <li>A cota do Informe Diário é líquida de taxas e bruta de IR. O exemplo pode cair num fundo exclusivo ou de previdência; para produtos de prateleira, passe o CNPJ.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Os arquivos deste artifact são <code>dadospub.py</code>, <code>test_dadospub.py</code> e <code>LEIA-ME.md</code>.</footer>
+</main>
