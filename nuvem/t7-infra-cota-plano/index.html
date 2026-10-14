@@ -1,0 +1,140 @@
+<title>Nuvem · Infra · cota real do plano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; entregáveis no topo, detalhes abaixo */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --term-bg: #10171c; --term-fg: #d7e0e5; --term-dim: #7d8b95; --term-ok: #6fd18e; --term-warn: #f0b85a; --term-bad: #f08a80;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; --term-bg: #0b1014; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; --term-bg: #0b1014; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; }
+.term { background: var(--term-bg); color: var(--term-fg); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font: 13px/1.5 var(--mono); white-space: pre; }
+.term .d { color: var(--term-dim); } .term .g { color: var(--term-ok); } .term .y { color: var(--term-warn); } .term .r { color: var(--term-bad); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fact { border-top: 2px solid var(--accent); padding-top: 8px; display: grid; gap: 2px; }
+.fact b { font: 600 22px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Infra · tarefa 7 de 10 · 14/10/2026</div>
+    <h1>Cota real do plano</h1>
+    <p class="lead">Uma barra de status para o Claude Code no Windows que mostra a cota de 5 horas e de 7 dias e grava uma linha por minuto em <code>~/.claude/cota.jsonl</code>. Junto vem um <code>relatorio.py</code> que diz o consumo por dia e por hora e avisa se a cota semanal passar de 80% antes de quarta. Há duas versões da barra, Node e Git Bash, com saída idêntica e sem dependência nova.</p>
+    <div class="chips">
+      <span class="chip ok">23 de 23 testes passaram</span>
+      <span class="chip ok">campos conferidos na documentação</span>
+      <span class="chip warn">testado no Linux, não no Windows</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Como fica a barra</h2>
+    <div class="term" role="img" aria-label="Exemplo da barra: [Opus] directory, contexto 8%, cota de 5 horas em 24% com reset às 13:00 e cota de 7 dias em 41% com reset quinta às 13:00">[Opus] directory | ctx 8% | 5h <span class="g">▓▓░░░░░░░░ 24%</span> <span class="d">↻13:00</span> · 7d <span class="g">41%</span> <span class="d">↻qui 13:00</span>
+[Opus] directory | ctx 8% | 5h <span class="y">▓▓▓▓▓▓░░░░ 55%</span> <span class="d">↻13:00</span> · 7d <span class="r">80%</span> <span class="d">↻qui 13:00</span></div>
+    <p>Essas duas linhas são a saída dos testes: o JSON de exemplo da documentação e uma variação dele. Verde fica abaixo de 50%, amarelo vai de 50% a 79% e vermelho começa em 80%. Se você já usa uma barra, ponha o comando dela em <code>~/.claude/cota-base.txt</code>: ela continua aparecendo e a cota vem depois.</p>
+  </section>
+
+  <section>
+    <h2>Entregáveis</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Arquivo</th><th>Status</th><th>O que é</th></tr></thead>
+      <tbody>
+        <tr><td><code>statusline-cota.mjs</code></td><td><span class="chip ok">pronto</span></td><td>A barra em Node, só com módulos nativos. Lê o JSON com <code>JSON.parse</code>.</td></tr>
+        <tr><td><code>statusline-cota.sh</code></td><td><span class="chip ok">pronto</span></td><td>A mesma barra em Git Bash, sem jq e sem <code>date</code>. Não cria processo nenhum (conferido com strace): 6 ms por execução contra 57 ms do Node, aqui.</td></tr>
+        <tr><td><code>relatorio.py</code></td><td><span class="chip ok">pronto</span></td><td>Estado atual, consumo por dia e por hora em pontos percentuais e os alertas. Sai com código 2 quando há alerta. Só biblioteca padrão.</td></tr>
+        <tr><td><code>test_cota.py</code></td><td><span class="chip ok">23 de 23</span></td><td>Roda os dois scripts com JSON sintético e confere que dão a mesma saída e o mesmo registro, e testa o relatório com semanas sintéticas.</td></tr>
+        <tr><td><code>LEIA-ME.md</code></td><td><span class="chip ok">pronto</span></td><td>O que a documentação diz, como instalar no Windows, como o relatório conta e as limitações.</td></tr>
+        <tr><td><code>exemplo_docs.json</code></td><td><span class="chip ok">da doc</span></td><td>O JSON de exemplo copiado de code.claude.com/docs/en/statusline, base dos testes.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>O que a documentação diz</h2>
+    <p>Conferido em 14/10/2026 em <a href="https://code.claude.com/docs/en/statusline">code.claude.com/docs/en/statusline</a>:</p>
+    <ul>
+      <li>Os nomes exatos: <code>rate_limits.five_hour.used_percentage</code> e <code>rate_limits.seven_day.used_percentage</code>, de 0 a 100, e <code>rate_limits.five_hour.resets_at</code> e <code>rate_limits.seven_day.resets_at</code>, em segundos Unix.</li>
+      <li><code>rate_limits</code> só vem para assinante Pro ou Max (ou atrás de um gateway com limite de gasto) e só depois da primeira resposta da sessão. Cada janela pode faltar, e some quando passa o reset dela.</li>
+      <li>A barra roda a cada evento (com debounce de 300 ms), no reset de uma janela e a cada <code>refreshInterval</code> segundos. Com <code>60</code>, ela grava também com a sessão parada.</li>
+      <li>No Windows o comando roda pelo Git Bash quando ele existe e pelo PowerShell quando não. O caminho tem de usar barra normal.</li>
+    </ul>
+    <p><b>No <code>claude -p</code>:</b> a página da barra não fala do <code>-p</code>, e o <code>-p</code> não tem a interface onde a barra vive, então o script não deve rodar lá. Não verifiquei rodando. Os números chegam por outros caminhos:</p>
+    <ul>
+      <li>No <code>--output-format stream-json</code> vem o evento <code>rate_limit_event</code>, com <code>status</code>, <code>resetsAt</code> e <code>utilization</code> de 0 a 1 (não de 0 a 100). O SDK em Python também lê o tipo da janela. Pela documentação, ele sai quando a sessão encontra um limite ou quando o status muda (por exemplo, de <code>allowed</code> para <code>allowed_warning</code>). Está em <a href="https://code.claude.com/docs/en/agent-sdk/typescript">agent-sdk/typescript</a> e <a href="https://code.claude.com/docs/en/agent-sdk/python">agent-sdk/python</a>.</li>
+      <li>O <code>/usage</code> mandado como prompt devolve <code>usage_report.rate_limits.limits</code>, com <code>percent</code> de 0 a 100 e <code>resets_at</code> em ISO. A documentação marca esse formato como experimental.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Para instalar no PC</h2>
+<pre>1. copie statusline-cota.mjs (ou .sh) e relatorio.py para C:/Users/loren/.claude/
+2. se já tem barra, copie o "command" dela para C:/Users/loren/.claude/cota-base.txt
+3. em C:/Users/loren/.claude/settings.json:
+   "statusLine": { "type": "command", "command": "node ~/.claude/statusline-cota.mjs", "refreshInterval": 60 }
+   (sem Node: "command": "bash ~/.claude/statusline-cota.sh")
+4. abra o Claude Code e mande uma mensagem; o 5h e o 7d aparecem depois da primeira resposta
+5. python C:/Users/loren/.claude/relatorio.py --saida C:/Users/loren/.claude/cota.md</pre>
+  </section>
+
+  <section>
+    <h2>Como o relatório conta</h2>
+    <ul>
+      <li><b>Consumo:</b> a diferença entre duas amostras seguidas da mesma janela, em pontos percentuais. Quando a janela vira, o percentual novo foi gasto depois do reset e conta inteiro.</li>
+      <li><b>Alerta de quarta:</b> a semana atual vai de <code>resets_at</code> menos 7 dias até <code>resets_at</code>. Se alguma amostra passou de 80% antes da primeira quarta 00:00 dessa semana, sai um alerta. O limite e o dia mudam com <code>--limite</code> e <code>--dia</code>.</li>
+      <li><b>Ritmo:</b> usa os pontos por hora nas últimas 24 h, com pelo menos 3 h de registro. Ele avisa se a cota vai chegar a 80% antes de quarta ou acabar antes do reset.</li>
+      <li>Várias sessões abertas gravam no mesmo arquivo. A trava deixa passar uma linha por minuto, e o relatório junta o que cair no mesmo minuto.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li>Testado no Linux da nuvem (bash 5.2, Node 22), não no Windows. O <code>.sh</code> precisa de bash 5, que o Git Bash atual tem. Se a hora sair errada, use o <code>.mjs</code>.</li>
+      <li>Não verificado: o comportamento real no <code>claude -p</code> e se o Claude Code no Windows passa o fuso certo para o script.</li>
+      <li>Com o Claude Code fechado não há amostra. O que foi gasto nesse tempo, inclusive no claude.ai, no app e nas sessões na nuvem, que dividem a mesma cota, aparece de uma vez na amostra seguinte. O que foi gasto entre a última amostra e um reset se perde.</li>
+      <li>O arquivo cresce até uns 290 KB por dia e não tem rotação.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Arquivos deste artifact: <code>statusline-cota.mjs</code>, <code>statusline-cota.sh</code>, <code>relatorio.py</code>, <code>test_cota.py</code>, <code>LEIA-ME.md</code> e <code>exemplo_docs.json</code>.</footer>
+</main>
