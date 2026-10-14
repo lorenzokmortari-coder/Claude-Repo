@@ -1,0 +1,116 @@
+--- a/whatsapp-governador.js
++++ b/whatsapp-governador.js
+@@ -103,7 +103,12 @@
+ const GAP_MAX_MIN = Number(process.env.OZAV_WPP_GAP_MAX || 4);
+ const DISJUNTOR_NOVAS_H = 48;
+ const DISJUNTOR_TUDO_H = 3;
+-const SINAL = /rate-?overlimit|too many|forbidden|not-authorized|\b40[13]\b|logged ?out|loggedout|spam|blocked|banned/i;
++// 14/10/2026 (tarefa 18, nuvem): os sinais de RESTRICAO de 2025-2026. Conta restrita nao inicia conversa nova, nao cria
++// grupo e perde os aparelhos conectados (FAQ "About restricted accounts"); no Baileys isso chega como o erro 463
++// ("NackCallerReachoutTimelocked", a trava de reach-out), como RESTRICT_ALL_COMPANIONS, como 401 device_removed ou
++// como o aviso "not allowed to use WhatsApp" / "subject to restrictions" (relatos nas issues 2441, 2658 e 2805 do
++// Baileys). Sem isto, o 463 caia como falha comum e a fila seguia tentando contato novo durante a restricao.
++const SINAL = /rate-?overlimit|too many|forbidden|not-authorized|\b40[13]\b|logged ?out|loggedout|spam|blocked|banned|\b463\b|reach-?out|time-?lock|restrict|device[_ ]?removed|not allowed to use whatsapp/i;
+ const ACOES_NOVAS = new Set(['criar_grupo', 'adicionar_time', 'convidar', 'remover_participante', 'oi_pendente']);
+ // A pista das respostas (29/09/2026): teto por hora proprio e intervalo curto, em segundos.
+ // A reserva de toques da conducao na pista de follow-up (29/09/2026): leva/regua param antes, o toque da
+@@ -113,6 +118,13 @@
+ const RESP_HORA = Number(process.env.OZAV_WPP_RESP_HORA || 20);
+ const RESP_GAP_S = Number(process.env.OZAV_WPP_RESP_GAP_S || 75);
+ const RESP_DIA = Number(process.env.OZAV_WPP_RESP_DIA || 80);
++// MENSAGENS SEM RESPOSTA (14/10/2026, tarefa 18, nuvem). Em 17/10/2025 o WhatsApp anunciou o teste de um teto MENSAL de
++// mensagens mandadas a quem nao responde (pessoas e empresas; numero nao divulgado; a resposta da pessoa tira da conta
++// as mensagens mandadas a ela). O governador nao media isso. Agora mede no privado (30 dias, pelo livro e pelo banco
++// da captura) e so segura com teto ligado: OZAV_WPP_SEM_RESPOSTA_30D > 0. Padrao 0 = so mede, porque o numero do
++// WhatsApp nao e publico e um teto chutado pararia o comercial. Grupo fica fora (o time escreve nos grupos e contaria
++// como resposta; e o teste do WhatsApp fala de pessoas).
++const SEM_RESPOSTA_30D = Number(process.env.OZAV_WPP_SEM_RESPOSTA_30D || 0);
+ 
+ /** Resposta a quem nos escreveu? Pelo classificar da catraca (a mesma regra de todo robo). */
+ function ehResposta(m) {
+@@ -329,6 +341,11 @@
+   if (ultima && !resposta && agora - Date.parse(ultima.em) < intervaloMs(ultima, lim)) {
+     return `governador: intervalo entre mensagens (${lim.gap_min}-${lim.gap_max} min, ${lim.fase})`;
+   }
++  if (SEM_RESPOSTA_30D > 0 && !resposta) {
++    const sr = semResposta(agora, db);
++    if (sr === null) return 'governador: teto de mensagens sem resposta ligado, mas sem o banco da captura para contar (na duvida, segura)';
++    if (sr.mensagens >= SEM_RESPOSTA_30D) return `governador: ${sr.mensagens} mensagens sem resposta no privado em 30 dias (teto ${SEM_RESPOSTA_30D}); so resposta sai ate alguem responder`;
++  }
+   if (!ehNova(m, db)) return null;
+   // O "oi" de grupo novo so em dia util, 8h-20h de SP (02/10/2026). Ele espera o cliente entrar pelo
+   // convite e nao tinha janela (o criar_grupo tem, pelo so_na_janela de quem pede): um cliente que
+@@ -358,7 +375,37 @@
+     return;
+   }
+   const nova = ehNova(m, db);
+-  anotar({ chave: m.chave, acao: m.acao || 'msg', conversa: m.conversa, nova, resposta: ehResposta(m), comeco: nova ? comeco(m.texto) : null });
++  // jid (14/10/2026): para contar as mensagens sem resposta (semResposta). Linha velha, sem jid, fica fora da conta.
++  anotar({ chave: m.chave, acao: m.acao || 'msg', conversa: m.conversa, jid: m.jid || null, nova, resposta: ehResposta(m), comeco: nova ? comeco(m.texto) : null });
++}
++
++/**
++ * As mensagens nossas de iniciativa (nao resposta) no PRIVADO nos ultimos `dias` que a pessoa ainda nao respondeu:
++ * nenhuma fala dela (de_mim = 0) no banco da captura depois do envio. {mensagens, contatos}, ou null sem banco.
++ */
++function semResposta(agora = Date.now(), db, dias = 30) {
++  if (!db) return null;
++  const envios = livro(agora - dias * 86400e3).filter((x) => ehEnvio(x) && !x.resposta && x.jid && !/@g\.us$/.test(String(x.jid)));
++  const ultimaDeles = new Map();
++  let mensagens = 0;
++  const contatos = new Set();
++  try {
++    for (const x of envios) {
++      const jid = String(x.jid);
++      if (!ultimaDeles.has(jid)) {
++        const base = jid.split('@')[0].split(':')[0];
++        const r = db.prepare('SELECT MAX(ts) AS t FROM mensagens WHERE de_mim = 0 AND (jid = ? OR jid LIKE ?)').get(jid, base + '@%');
++        ultimaDeles.set(jid, r && r.t ? Number(r.t) : 0);
++      }
++      if (ultimaDeles.get(jid) * 1000 <= Date.parse(x.em)) {
++        mensagens++;
++        contatos.add(jid);
++      }
++    }
++  } catch {
++    return null;
++  }
++  return { mensagens, contatos: contatos.size, dias };
+ }
+ 
+ /** Chamado em toda falha e queda. Se for sinal do WhatsApp, arma o disjuntor e avisa. */
+@@ -418,7 +465,7 @@
+   gravarEstado(e);
+ }
+ 
+-function status(agora = Date.now()) {
++function status(agora = Date.now(), db) {
+   const e = lerEstado();
+   const dia = livro(agora - 24 * 3600e3).filter(ehEnvio);
+   const lim = limites(agora, e);
+@@ -433,10 +480,11 @@
+     respostas_ultima_hora: dia.filter((x) => x.resposta && Date.parse(x.em) >= agora - 3600e3).length,
+     respostas_24h: dia.filter((x) => x.resposta).length,
+     proxima_livre_as: ultima ? new Date(Date.parse(ultima.em) + intervaloMs(ultima, lim)).toISOString() : null,
++    ...(db ? { sem_resposta_30d: semResposta(agora, db), teto_sem_resposta_30d: SEM_RESPOSTA_30D || 'so mede' } : {}),
+   };
+ }
+ 
+-module.exports = { motivo, registrar, sinal, ehNova, ehResposta, lerEstado, gravarEstado, limites, aquecer, pausar, liberar, status, comeco, comecosNovos, DIAS_AQUECIMENTO };
++module.exports = { motivo, registrar, sinal, ehNova, ehResposta, lerEstado, gravarEstado, limites, aquecer, pausar, liberar, status, comeco, comecosNovos, semResposta, DIAS_AQUECIMENTO };
+ 
+ /**
+  * `node whatsapp-governador.js --testar`: sem rede e sem banco. Roda num processo filho com estado e
+@@ -506,6 +554,12 @@
+   } else if (tem('--liberar')) {
+     liberar();
+     console.log('pausa retirada');
++  } else if (tem('--sem-resposta')) {
++    // Le o banco da captura so para leitura (o mesmo caminho da convivencia).
++    const { DatabaseSync } = require('node:sqlite');
++    const db = new DatabaseSync(path.join(__dirname, 'whatsapp', 'dados', 'mensagens.db'), { readOnly: true });
++    console.log(JSON.stringify({ ...semResposta(Date.now(), db), teto: SEM_RESPOSTA_30D || 'so mede (OZAV_WPP_SEM_RESPOSTA_30D=0)' }));
++    db.close();
+   } else {
+     console.log(JSON.stringify(status(), null, 2));
+   }

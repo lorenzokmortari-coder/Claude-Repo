@@ -1,0 +1,162 @@
+<title>Nuvem · Ozav · risco de banimento no WhatsApp</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; resumo em chips, tabelas largas com rolagem própria */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.v { font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.neutro { background: var(--code-bg); color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.largo table { min-width: 760px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 18 · 14/10/2026</div>
+    <h1>Risco de banimento no WhatsApp</h1>
+    <p class="lead">O que se sabe em 2025 e 2026 sobre restrição e ban de número que usa cliente não oficial (Baileys), cruzado com o que o governador, a catraca e a convivência já fazem. Saem dois patches com teste e um plano B para a primeira hora.</p>
+    <div class="chips">
+      <span class="chip ok">2 patches</span>
+      <span class="chip ok">8 testes novos: 6 falham antes</span>
+      <span class="chip ok">33 testes do pacote passam</span>
+      <span class="chip ok">aplica junto com a tarefa 12</span>
+      <span class="chip warn">fonte oficial só pelo trecho do buscador</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>O que derruba número hoje</h2>
+    <ul>
+      <li><b>Contato novo é o gatilho que mais se repete.</b> Os relatos de restrição de 24 h começam em 15 a 40 mensagens por dia para quem nunca falou com o número. É COMUNIDADE, não limite oficial. O governador fica muito abaixo disso: 2 interações novas por dia, com 180 min entre elas.</li>
+      <li><b>A restrição já derruba o servidor.</b> Conta restrita continua falando com quem já conversou, mas não inicia conversa nova, não cria grupo e perde os aparelhos vinculados. O Baileys é um aparelho vinculado. Fonte: FAQ oficial, via trecho do buscador.</li>
+      <li><b>O sinal da restrição no Baileys é o erro 463</b> ("reach-out timelock"), segundo a comunidade (issue 2441). O nosso disjuntor não reconhecia esse erro.</li>
+      <li><b>O WhatsApp testa um teto mensal de mensagens a quem não responde.</b> O anúncio é de 17/10/2025, pela imprensa, e o número não foi divulgado. Hoje ninguém mede isso aqui.</li>
+      <li><b>Os Termos do Business App</b>, em vigor desde 23/09/2026 segundo o trecho do buscador, proíbem acesso automatizado. O WhatsApp testa um aviso para cliente web não oficial desde setembro de 2026.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Achados</h2>
+    <div class="tbl largo"><table>
+      <thead><tr><th>#</th><th>Gravidade</th><th>Em uma linha</th><th>Onde</th><th>Saída</th></tr></thead>
+      <tbody>
+        <tr><td class="num">W01</td><td><span class="v bad">ALTO</span></td><td>O erro 463 e os outros textos de restrição não armam o disjuntor nem avisam o Lorenzo; a fila segue tentando contato novo durante a restrição</td><td><code>whatsapp-governador.js:106</code></td><td>patch 01 · confiança média</td></tr>
+        <tr><td class="num">W02</td><td><span class="v warn">MÉDIO</span></td><td>Ninguém mede quantas mensagens de iniciativa ficaram sem resposta no mês</td><td><code>whatsapp-governador.js:287-351</code></td><td>patch 02 · só mede por padrão · confiança baixa</td></tr>
+        <tr><td class="num">W03</td><td><span class="v warn">MÉDIO</span></td><td>Baileys <code>^6.7.9</code>: a comunidade diz que o 463 só é tratado a partir do 7.0.0-rc13</td><td><code>whatsapp/package.json:12</code></td><td>testar num número de laboratório</td></tr>
+        <tr><td class="num">W04</td><td><span class="v warn">MÉDIO</span></td><td>Celular principal 14 dias sem abrir o app desconecta os aparelhos vinculados</td><td>rotina</td><td>abrir a cada 10 dias</td></tr>
+        <tr><td class="num">W05</td><td><span class="v neutro">BAIXO</span></td><td>Sessão em IP de datacenter aparece em relatos como agravante (hipótese)</td><td>servidor</td><td>registro para a forense</td></tr>
+        <tr><td class="num">W06</td><td><span class="v neutro">decisão</span></td><td>Os Termos do Business App proíbem automação; nenhum teto zera esse risco</td><td>—</td><td>rota de saída no plano B</td></tr>
+      </tbody>
+    </table></div>
+    <p class="nota-fonte">Detalhe de cada achado, com cenário, evidência e confiança, em <code>achados.md</code>.</p>
+  </section>
+
+  <section>
+    <h2>Os dois patches</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Patch</th><th>O que muda</th><th>Testes</th></tr></thead>
+      <tbody>
+        <tr><td><code>01-disjuntor-reconhece-restricao.diff</code></td><td>A <code>SINAL</code> passa a casar <code>463</code>, <code>reach-out</code>, <code>timelock</code>, <code>restrict</code>, <code>device_removed</code> e "not allowed to use WhatsApp". Com o sinal, nada sai por 3 h, nenhuma interação nova sai por 48 h e o aviso vai ao Slack.</td><td>B01 a B03. Queda comum (conflict, timeout, ECONNRESET) não arma.</td></tr>
+        <tr><td><code>02-mede-mensagens-sem-resposta.diff</code></td><td>O livro guarda o <code>jid</code>, e <code>semResposta()</code> conta as mensagens de iniciativa no privado em 30 dias que ninguém respondeu. O comando é <code>--sem-resposta</code>. Só segura com <code>OZAV_WPP_SEM_RESPOSTA_30D</code> maior que 0; o padrão só mede.</td><td>B04 a B08</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Já está bom (não mexer)</h2>
+    <ul>
+      <li>Uma fila e um socket, com intervalo de 2 a 4 min sorteado entre robôs.</li>
+      <li>Follow-up só em dia útil, das 8h às 20h, e parado no feriado.</li>
+      <li>Grupo novo e convite contam como interação nova, e texto repetido em outra conversa segura.</li>
+      <li>Aquecimento de 5 dias depois de todo pareamento.</li>
+      <li>O teto de 2 contatos novos por dia e as 48 h de disjuntor seguram mais do que os relatos pedem. É escolha do dono depois de 24/09; não proponho afrouxar.</li>
+      <li>A tabela completa, com o que está folgado (volume de 120 por dia no papel; aquecimento curto para um número novo), está em <code>comparacao.md</code>.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Plano B: a primeira hora</h2>
+    <ol>
+      <li>Rode <code>node whatsapp-governador.js --pausar 1440 numero caiu</code> e confira o <code>--status</code>.</li>
+      <li>Não reconecte o Baileys em laço nem leia o QR de novo.</li>
+      <li>Abra o app no celular do número e veja qual é a situação: restrição, ban temporário ou ban com o botão "Solicitar análise".</li>
+      <li><b>Se for restrição:</b> responda pelo celular quem está esperando. Religue o servidor só depois que a restrição acabar, com o aquecimento.</li>
+      <li><b>Se for ban com o botão:</b> peça a análise uma única vez. Sem o botão, o ban é final.</li>
+      <li>O aviso aos clientes ativos sai por e-mail só com o OK do Lorenzo. O rascunho está pronto.</li>
+      <li>Guarde a forense: o livro do governador, o <code>catraca.jsonl</code>, o log do dreno e o <code>ultimo_sinal</code>.</li>
+    </ol>
+    <p class="nota-fonte">O que deixar pronto antes e o que não fazer estão em <code>plano-b.md</code>.</p>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Nenhuma página oficial abriu nesta rede.</b> Ficaram bloqueados faq.whatsapp.com, whatsapp.com, business.whatsapp.com, developers.facebook.com, techcrunch.com, wabetainfo.com e outros. O que é OFICIAL saiu do trecho do buscador e está marcado "não verificado" em <code>pesquisa.md</code>. Só o GitHub abriu.</li>
+      <li>O dreno (<code>whatsapp/conectar.js</code>) não está no pacote. Não sei o texto exato que ele passa ao <code>sinal()</code>, nem se chama o <code>registrar</code> com o <code>jid</code>.</li>
+      <li>Os números de comunidade se contradizem e nenhum é limite oficial. "Link na primeira mensagem" e "não marcar como lido" não têm fonte pública: não mexi.</li>
+      <li>Buscas: 30 de um teto de 40.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Arquivos</h2>
+    <div class="tbl"><table>
+      <tbody>
+        <tr><td><code>para-a-00.md</code></td><td>Resumo para despachar: comandos, dona, prioridade</td></tr>
+        <tr><td><code>achados.md</code></td><td>Os 6 achados no formato das regras</td></tr>
+        <tr><td><code>comparacao.md</code></td><td>Gatilho × regra do código: ok, falta, folgado, apertado</td></tr>
+        <tr><td><code>plano-b.md</code></td><td>Os três estados, o que deixar pronto e a primeira hora</td></tr>
+        <tr><td><code>pesquisa.md</code></td><td>As fontes, com a natureza de cada uma e as datas</td></tr>
+        <tr><td><code>patches/01…, 02…, todos.diff</code></td><td>Os patches, para <code>patch -p1</code> na pasta do pacote</td></tr>
+        <tr><td><code>testes/banimento.test.js</code></td><td>Os 8 testes (<code>node --test</code>, sem rede)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Nenhuma conta, nenhuma mensagem enviada, nenhum dado pessoal. O código do pacote não está aqui: só os patches e os testes.</footer>
+</main>

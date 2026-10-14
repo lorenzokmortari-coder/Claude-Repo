@@ -1,0 +1,16 @@
+--- a/whatsapp-governador.js
++++ b/whatsapp-governador.js
+@@ -103,7 +103,12 @@
+ const GAP_MAX_MIN = Number(process.env.OZAV_WPP_GAP_MAX || 4);
+ const DISJUNTOR_NOVAS_H = 48;
+ const DISJUNTOR_TUDO_H = 3;
+-const SINAL = /rate-?overlimit|too many|forbidden|not-authorized|\b40[13]\b|logged ?out|loggedout|spam|blocked|banned/i;
++// 14/10/2026 (tarefa 18, nuvem): os sinais de RESTRICAO de 2025-2026. Conta restrita nao inicia conversa nova, nao cria
++// grupo e perde os aparelhos conectados (FAQ "About restricted accounts"); no Baileys isso chega como o erro 463
++// ("NackCallerReachoutTimelocked", a trava de reach-out), como RESTRICT_ALL_COMPANIONS, como 401 device_removed ou
++// como o aviso "not allowed to use WhatsApp" / "subject to restrictions" (relatos nas issues 2441, 2658 e 2805 do
++// Baileys). Sem isto, o 463 caia como falha comum e a fila seguia tentando contato novo durante a restricao.
++const SINAL = /rate-?overlimit|too many|forbidden|not-authorized|\b40[13]\b|logged ?out|loggedout|spam|blocked|banned|\b463\b|reach-?out|time-?lock|restrict|device[_ ]?removed|not allowed to use whatsapp/i;
+ const ACOES_NOVAS = new Set(['criar_grupo', 'adicionar_time', 'convidar', 'remover_participante', 'oi_pendente']);
+ // A pista das respostas (29/09/2026): teto por hora proprio e intervalo curto, em segundos.
+ // A reserva de toques da conducao na pista de follow-up (29/09/2026): leva/regua param antes, o toque da
