@@ -1,0 +1,107 @@
+<title>Nuvem · Infra · vigia de integridade</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem" */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+code { font-family: var(--mono); font-size: 13px; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.ciclo { list-style: none; padding: 0; margin: 0; display: grid; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.ciclo li { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.ciclo li:last-child { border-bottom: 0; }
+.ciclo b { font: 500 13px/1.5 var(--mono); color: var(--accent); }
+.ciclo .humano b { color: var(--warn); }
+.quadros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.quadros figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.quadros img { width: 100%; max-width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #000; display: block; }
+figcaption { font: 12px/1.4 var(--mono); color: var(--muted); }
+@media (max-width: 560px) { .quadros { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ciclo li { grid-template-columns: 1fr; gap: 2px; } }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Infra · tarefa 28 · 14/10/2026</div>
+    <h1>Vigia de integridade</h1>
+    <p class="lead">Um script Python, só com biblioteca padrão, que avisa quando alguém troca um hook, um servidor MCP, uma permissão do Claude ou a permissão de um <code>.env</code> no servidor. Também resume as vulnerabilidades das dependências toda semana. Só avisa: não conserta nada e só escreve na própria pasta de estado.</p>
+    <div class="chips">
+      <span class="chip ok">28 testes verdes (também como não root)</span>
+      <span class="chip ok">nenhum segredo na saída (testado)</span>
+      <span class="chip ok">falha fechada</span>
+      <span class="chip warn">formato do osv-scanner não verificado</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>O que ele confere</h2>
+    <div class="tbl"><table>
+      <tr><td><code>--checar</code><br>de hora em hora</td><td>SHA-256, dono e permissão de cada arquivo do ini, comparados com <code>base.json</code>. No JSON, compara só as chaves vigiadas (<code>hooks</code>, <code>permissions</code>, <code>env</code>, <code>mcpServers</code>, <code>projects.*.mcpServers</code>…); as outras chaves podem mudar sem aviso. No <code>.env</code>, compara hash e permissão; acima de 600 avisa sempre. Nas pastas de hooks, arquivo novo, sumido ou mudado avisa. Arquivo sumido, ilegível ou com JSON quebrado também avisa. O script e o ini se vigiam.</td></tr>
+      <tr><td><code>--aceitar "motivo"</code></td><td>Regrava a base e anota em <code>aceites.jsonl</code>, que só recebe acréscimos: data, motivo, usuário e hash antes → depois. Recusa sem motivo e recusa com item sumido ou ilegível.</td></tr>
+      <tr><td><code>--deps</code><br>segunda 7h</td><td>Roda o <code>osv-scanner</code> em cada pasta e resume por projeto, separando ALTA e CRÍTICA (aliases contam uma vez). Sem o binário, escreve uma linha e sai com 3.</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Como sai o aviso</h2>
+    <pre>INTEGRIDADE MUDOU · 4 nova(s): .env, novo.sh, settings.json · detalhe em …/relatorio.md
+  …/.env: .env com permissão 644 (máximo 600)
+  …/hooks/novo.sh: arquivo novo na pasta vigiada (sha 73cb3858a687, 0644)
+  …/settings.json: chave vigiada mudou: hooks (sha 44136fa355b3 → 4ca7ddfbffa0)
+INTEGRIDADE OK · 4 diferença(s) já avisada(s) hoje, pendente(s) de --aceitar</pre>
+    <p>Com <code>--resumo</code>, sai só a primeira linha. Códigos: 0 = nada novo, 1 = mudou, 2 = erro do vigia (sem base, base corrompida, ini ausente, trava ocupada) e, no <code>--deps</code>, 3 = sem osv-scanner. A mesma diferença avisa uma vez por dia; uma diferença nova no mesmo dia avisa na hora.</p>
+  </section>
+
+  <section>
+    <h2>Testes (pytest, árvore sintética, sem rede)</h2>
+    <p>Base nova, chave vigiada mudou, chave ignorada (não avisa), curinga de projeto pega MCP novo, JSON quebrado, hook novo, hook mudado e sumido, <code>.env</code> com 644 (e o aceite não cala isso), arquivo sumido, arquivo ilegível, ini mudado, aceite com motivo, aceite sem motivo (três formas), aceite com item sumido, repetição no mesmo dia (cala; diferença nova no mesmo dia e o dia seguinte avisam), <code>avisos.json</code> estragado (volta a avisar), base apagada com livro e base corrompida (erro), "não escreve fora do estado nem conserta", fixture do osv com 1 crítica, osv falso de ponta a ponta e osv ausente.</p>
+  </section>
+
+  <section>
+    <h2>Limitações</h2>
+    <ul>
+      <li>O formato JSON e os códigos de saída do <code>osv-scanner</code> vêm de memória da documentação e não foram conferidos aqui (nesta tarefa não houve busca na web). O comando fica no ini; para a v2, use <code>osv-scanner scan source --format json -r {pasta}</code>.</li>
+      <li>Os nomes das chaves do <code>~/.claude.json</code> no exemplo precisam ser conferidos contra o arquivo real.</li>
+      <li>Root pode trocar o vigia e a base juntos. O livro e o aviso mostram a troca, mas não a impedem.</li>
+      <li>Só Linux (usa <code>fcntl</code>, <code>pwd</code>, <code>grp</code>).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Arquivos</h2>
+    <p><code>integridade/integridade.py</code> · <code>integridade.ini.exemplo</code> · <code>instalar-cron.txt</code> · <code>LEIA-ME.md</code> · <code>tests/</code> · <code>para-a-00.md</code></p>
+  </section>
+  <footer>Gerado numa sessão de nuvem do Claude Code. Tudo testado em árvore sintética; nenhum arquivo do servidor foi usado.</footer>
+</main>

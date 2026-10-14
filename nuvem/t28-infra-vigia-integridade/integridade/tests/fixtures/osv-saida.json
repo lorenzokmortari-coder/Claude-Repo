@@ -1,0 +1,24 @@
+{
+  "results": [
+    {
+      "source": {"path": "{PASTA}/package-lock.json", "type": "lockfile"},
+      "packages": [
+        {
+          "package": {"name": "pacote-sintetico-a", "version": "1.0.0", "ecosystem": "npm"},
+          "vulnerabilities": [
+            {"id": "GHSA-xxxx-0001-sint", "aliases": ["CVE-0000-0001"], "database_specific": {"severity": "CRITICAL"}},
+            {"id": "CVE-0000-0001", "aliases": ["GHSA-xxxx-0001-sint"]}
+          ],
+          "groups": [{"ids": ["GHSA-xxxx-0001-sint", "CVE-0000-0001"], "max_severity": "9.8"}]
+        },
+        {
+          "package": {"name": "pacote-sintetico-b", "version": "2.3.4", "ecosystem": "npm"},
+          "vulnerabilities": [
+            {"id": "GHSA-xxxx-0002-sint", "database_specific": {"severity": "MODERATE"}}
+          ],
+          "groups": [{"ids": ["GHSA-xxxx-0002-sint"], "max_severity": ""}]
+        }
+      ]
+    }
+  ]
+}

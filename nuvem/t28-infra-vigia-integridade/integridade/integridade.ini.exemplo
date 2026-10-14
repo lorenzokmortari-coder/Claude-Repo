@@ -1,0 +1,36 @@
+; Vigia de integridade · copie para integridade.ini e troque USUARIO_A / USUARIO_B.
+; Use caminhos absolutos (o cron roda como root; "~" seria /root).
+; O próprio integridade.py e este ini entram na vigia sozinhos.
+
+[geral]
+; única pasta onde o vigia escreve (base.json, aceites.jsonl, avisos.json, relatorio.md, deps.md)
+estado = /var/lib/integridade
+fuso = America/Sao_Paulo
+; {pasta} vira cada pasta de [deps]. No osv-scanner v2 também vale:
+; comando_osv = osv-scanner scan source --format json -r {pasta}
+comando_osv = osv-scanner --format json -r {pasta}
+
+[arquivos]
+; caminho = chaves vigiadas (só para JSON; vazio = arquivo inteiro).
+; Chave pontuada; * casa qualquer chave. Chave fora da lista pode mudar sem aviso.
+; .env (e .env.*, *.env) = só hash, dono e permissão; acima de 600 avisa sempre.
+/home/USUARIO_A/.claude/settings.json = hooks, permissions, env, mcpServers, enabledMcpjsonServers, disabledMcpjsonServers, enableAllProjectMcpServers, apiKeyHelper, statusLine
+/home/USUARIO_A/.claude/settings.local.json = hooks, permissions, env, mcpServers
+/home/USUARIO_A/.claude.json = mcpServers, projects.*.mcpServers, projects.*.allowedTools, projects.*.enabledMcpjsonServers, projects.*.disabledMcpjsonServers
+/home/USUARIO_A/robos/.claude/settings.json = hooks, permissions, env
+/home/USUARIO_A/robos/.mcp.json = mcpServers
+/home/USUARIO_A/robos/.env =
+/home/USUARIO_B/ozav/.env =
+; política gerenciada do Claude no Linux, se existir:
+; /etc/claude-code/managed-settings.json =
+
+[pastas]
+; arquivo novo, sumido ou mudado = aviso (recursivo)
+/home/USUARIO_A/.claude/hooks =
+/home/USUARIO_A/.claude/commands =
+/home/USUARIO_A/.claude/agents =
+
+[deps]
+; projetos com package-lock.json ou requirements.txt
+/home/USUARIO_A/robos =
+/home/USUARIO_B/ozav =

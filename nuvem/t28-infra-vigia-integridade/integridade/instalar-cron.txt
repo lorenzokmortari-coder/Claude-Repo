@@ -1,0 +1,11 @@
+# Vigia de integridade · cron (arquivo /etc/cron.d/integridade, dono root, 644)
+# Roda como root porque os arquivos estão em pastas de usuários diferentes.
+# Instalação: sudo mkdir -p /opt/integridade && sudo cp integridade.py integridade.ini /opt/integridade/
+#             sudo chown -R root:root /opt/integridade && sudo chmod 700 /opt/integridade
+#             sudo python3 /opt/integridade/integridade.py --aceitar "base inicial" --ini /opt/integridade/integridade.ini
+# Troque AVISO pelo comando do aviso que já existe no servidor (ele recebe a linha única).
+# Horário do cron = fuso do servidor. Servidor em UTC: segunda 7h de Brasília = 10h UTC.
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin
+17 * * * * root python3 /opt/integridade/integridade.py --checar --resumo --ini /opt/integridade/integridade.ini > /var/lib/integridade/ultima.txt 2>&1 || AVISO < /var/lib/integridade/ultima.txt
+0 10 * * 1 root python3 /opt/integridade/integridade.py --deps --resumo --ini /opt/integridade/integridade.ini > /var/lib/integridade/ultima-deps.txt 2>&1 || AVISO < /var/lib/integridade/ultima-deps.txt
