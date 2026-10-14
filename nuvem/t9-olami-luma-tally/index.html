@@ -1,0 +1,214 @@
+<title>Nuvem · Olami · Luma e Tally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: guia de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; recomendação no topo, o texto LGPD pronto para copiar no meio */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4; --doc-bg: #fbfcfc;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; --doc-bg: #141d23; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; --doc-bg: #141d23; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.v { font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+code { font-family: var(--mono); font-size: 13px; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.doc { background: var(--doc-bg); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; display: grid; gap: 10px; }
+.doc p, .doc li { max-width: 66ch; }
+.doc .caixa { border: 2px solid var(--fg); border-radius: 6px; padding: 10px 12px; font-weight: 600; }
+.barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+button { font: 600 13px/1 var(--sans); padding: 9px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; }
+button:hover { background: var(--code-bg); }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+.nota { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Olami · tarefa 9 de 10 · 14/10/2026</div>
+    <h1>Luma e Tally</h1>
+    <p class="lead">Guia para tirar do Google Forms a inscrição dos eventos semanais gratuitos da Olami (Shabbat, aulas, festas; público de 20 a 35 anos): o que o plano grátis da Luma cobre, um modelo de formulário na Tally com o texto de consentimento LGPD, a migração em 5 passos e a comparação com a Sympla. Cada afirmação tem fonte oficial e grau de verificação no <code>fontes.csv</code>.</p>
+    <div class="chips">
+      <span class="chip ok">134 afirmações com fonte</span>
+      <span class="chip ok">124 de fonte oficial</span>
+      <span class="chip warn">WhatsApp no Brasil não confirmado</span>
+      <span class="chip warn">não é parecer jurídico</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Recomendação</h2>
+    <ol>
+      <li><b>Luma grátis como ferramenta principal.</b> Ela tem aprovação por ingresso, check-in por QR, lembretes automáticos e CSV com presença, sem custo para evento gratuito. Ligue também "Restrict Location to Guests", que esconde o endereço de quem não foi aprovado.</li>
+      <li><b>Teste o WhatsApp com um número +55 antes de prometer.</b> A regra da Luma aponta WhatsApp para a maioria dos países fora da lista de SMS, mas o Brasil não aparece escrito. O canal garantido é o e-mail.</li>
+      <li><b>Peça o mínimo:</b> nome, e-mail, celular, "tenho 18 anos ou mais" e a restrição alimentar só se a pessoa quiser. Use consentimento destacado e <b>nunca pergunte religião</b>.</li>
+      <li><b>Tally grátis onde a Luma é fraca:</b> formulário com lógica condicional (jantar grande com restrições), lista de interesse e pesquisas. Os dados ficam na UE e caem numa planilha automática.</li>
+      <li><b>Sympla como plano B.</b> Ela é boa em check-in offline e em Excel, mas não confirmei aprovação de inscritos e não tem WhatsApp nativo. Aposente o Google Forms depois de 2 semanas em paralelo e passe o texto LGPD por um advogado.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Luma grátis, item por item</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Item</th><th>No plano grátis</th><th>Verificação</th></tr></thead>
+      <tbody>
+        <tr><td>Inscrição com aprovação</td><td><b>Sim</b>, por tipo de ingresso ("Require Approval"). Convite mandado pelo anfitrião pula a aprovação. <a href="https://help.luma.com/p/setting-up-ticket-types">fonte</a></td><td><span class="v ok">trecho</span></td></tr>
+        <tr><td>Lembrete por WhatsApp no Brasil</td><td><b>Provável.</b> A Luma usa SMS em poucos países (EUA, Canadá, Austrália, Nova Zelândia, Japão, China, Ilhas Cayman) e WhatsApp "na maioria dos outros". O Brasil não aparece escrito, e o convidado precisa ter celular vinculado. O plano grátis lista "Blasts and automated reminders via email, SMS, push notification and WhatsApp". <a href="https://help.luma.com/p/sms-whatsapp-messages">fonte</a> · <a href="https://luma.com/pricing">preços</a></td><td><span class="v bad">não verificado</span> para o Brasil; <span class="v ok">trecho</span> para o plano</td></tr>
+        <tr><td>Check-in por QR</td><td><b>Sim</b>, pelo app iOS e Android, feito por quem é Manager do evento. O papel "só check-in" exige o Plus ("Check-in staff requires Luma Plus"). <a href="https://help.luma.com/p/check-in">fonte</a> · <a href="https://help.luma.com/p/luma-plus">Plus</a></td><td><span class="v warn">resumo</span>; Plus: <span class="v ok">trecho</span></td></tr>
+        <tr><td>Exportar inscritos e quem veio</td><td><b>Sim</b>, CSV com o status de check-in. No grátis não há ligação automática com planilha (Zapier e API são do Plus). <a href="https://help.luma.com/p/download-guest-csv">fonte</a></td><td><span class="v warn">resumo</span></td></tr>
+        <tr><td>Limites</td><td>3 admins no calendário (5 no Plus). 500 convites por semana para quem ainda não se inscreveu, com o calendário verificado (5.000 no Plus). Mensagem para quem já se inscreveu é ilimitada. A taxa de 5% vale só para ingresso pago. <a href="https://help.luma.com/p/understanding-import-and-event-invite-limits">fonte</a></td><td><span class="v ok">trecho</span></td></tr>
+        <tr><td>Preço do Luma Plus</td><td>US$ 59/mês no anual ou US$ 69/mês no mensal, por calendário. <a href="https://luma.com/pricing">fonte</a></td><td><span class="v warn">resumo</span></td></tr>
+        <tr><td>Onde ficam os dados</td><td>Na AWS, com cláusulas contratuais padrão para transferência. O DPA é "para clientes enterprise" e não há escolha de região. O país não apareceu. <a href="https://help.luma.com/p/enterprise-security">fonte</a></td><td><span class="v ok">trecho</span>; país: <span class="v bad">não verificado</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="nota">trecho = o texto da fonte veio citado no resultado da busca · resumo = só no resumo da busca · não verificado = não achei, as fontes divergem ou é inferência.</p>
+  </section>
+
+  <section>
+    <h2>Formulário de inscrição na Tally</h2>
+    <p>No plano grátis da Tally, formulários e respostas são ilimitados ("fair use"). Ele tem lógica condicional, campos ocultos e envio para Google Sheets, e os dados ficam na Bélgica, na UE (<a href="https://tally.so/help/gdpr">fonte</a>). O e-mail de confirmação para quem se inscreve é do Pro (<a href="https://tally.so/help/respondent-email-notifications">fonte</a>). Use um formulário só para todos os eventos, com o evento vindo no link (<code>?evento=shabbat-17-10</code>).</p>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Campo</th><th>Tipo</th><th>Obrigatório</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>evento</code> (não aparece)</td><td>Hidden field</td><td>vem no link</td><td>Saber o evento sem perguntar</td></tr>
+        <tr><td>2</td><td>Nome e sobrenome</td><td>Short answer</td><td>sim</td><td>Lista e check-in</td></tr>
+        <tr><td>3</td><td>E-mail</td><td>Email</td><td>sim</td><td>Confirmação e avisos</td></tr>
+        <tr><td>4</td><td>Celular com WhatsApp</td><td>Phone number (+55)</td><td>sim</td><td>Endereço, horário, cancelamento. Convite só com o campo 9 marcado</td></tr>
+        <tr><td>5</td><td>"Tenho 18 anos ou mais"</td><td>Checkbox</td><td>sim</td><td>Público adulto, sem pedir data de nascimento</td></tr>
+        <tr><td>6</td><td>"Quero informar uma restrição alimentar"</td><td>Checkbox</td><td>não</td><td>Abre o campo 7 por lógica condicional</td></tr>
+        <tr><td>7</td><td>Vegetariana, vegana, sem glúten, sem lactose, alergia, outra</td><td>Checkboxes + resposta curta</td><td>não</td><td>Planejar a comida. Alergia é dado de saúde: apagar em 30 dias. Não ofereça "kosher" se a comida já é toda kosher</td></tr>
+        <tr><td>8</td><td>Aviso de privacidade + caixa de consentimento</td><td>Text + Checkbox</td><td>sim</td><td>Consentimento específico e destacado (LGPD, art. 11, I)</td></tr>
+        <tr><td>9</td><td>"Quero receber convites por: WhatsApp / e-mail"</td><td>Checkboxes desmarcados</td><td>não</td><td>Divulgação com consentimento separado (art. 8º, § 4º)</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>Não pergunte, de propósito:</b> religião ou "você é judeu?", sinagoga ou movimento, CPF, RG, data de nascimento, endereço, gênero ou "como soube do evento". Nada disso é necessário (art. 6º, III), e religião é dado sensível (art. 5º, II). Se a inscrição for pela Luma, use uma pergunta "Termos" obrigatória para o aviso e um Checkbox opcional para os convites.</p>
+  </section>
+
+  <section>
+    <div class="barra">
+      <h2 style="margin:0">Texto de consentimento LGPD</h2>
+      <button type="button" id="copiar-consentimento" data-copiar="consentimento">Copiar texto</button>
+    </div>
+    <p class="nota">Pronto para colar e completar as lacunas entre colchetes. Lei: <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm">Lei nº 13.709/2018, texto compilado no planalto.gov.br</a>. Precisa passar por um advogado antes de ir ao ar.</p>
+    <div class="doc" id="consentimento">
+      <p><b>Aviso de privacidade: inscrição em eventos da Olami</b></p>
+      <p><b>Quem cuida dos seus dados (controlador):</b> [nome da associação], CNPJ [00.000.000/0000-00], [endereço].</p>
+      <p><b>Por que pedimos um consentimento especial:</b> a Olami é um centro comunitário judaico. Por isso, o simples fato de você se inscrever pode indicar sua convicção religiosa ou sua ligação com uma organização de caráter religioso, e a lei trata isso como dado pessoal sensível (LGPD, art. 5º, II, e art. 11, § 1º). Nós não perguntamos sua religião. Só tratamos esses dados com o seu consentimento específico e destacado (art. 11, I).</p>
+      <p><b>Quais dados:</b> nome e sobrenome, e-mail, celular, o evento escolhido, sua presença (check-in) e, só se você quiser, uma restrição alimentar.</p>
+      <p><b>Para que usamos, e só para isso:</b></p>
+      <ol>
+        <li>registrar e confirmar sua inscrição e, quando as vagas forem limitadas, aprovar sua vaga;</li>
+        <li>mandar informações práticas do evento em que você se inscreveu (confirmação, endereço, horário, mudanças e lembretes);</li>
+        <li>controlar a entrada no dia (check-in), pela segurança de todos;</li>
+        <li>se você informar, preparar a comida levando em conta sua restrição alimentar;</li>
+        <li>contar a participação nos eventos em números gerais, sem identificar ninguém.</li>
+      </ol>
+      <p>Não vendemos seus dados e não os usamos para nenhuma outra finalidade (art. 6º, I e III; art. 8º, § 4º).</p>
+      <p><b>Base legal:</b> o seu consentimento (art. 7º, I, e art. 11, I). Você pode retirá-lo quando quiser, de graça e de forma simples (art. 8º, § 5º).</p>
+      <p><b>Por quanto tempo guardamos:</b> inscrição e presença, até [12] meses depois do evento; depois apagamos ou guardamos só números, sem nomes. Restrição alimentar, apagada até [30] dias depois do evento. Contato para convites (se você marcar a caixa opcional), até você pedir para sair (arts. 15 e 16).</p>
+      <p><b>Com quem compartilhamos:</b> só com as empresas que fazem a inscrição funcionar, em nosso nome e seguindo nossas instruções (operadores, art. 5º, VII): Tally (formulário; diz guardar os dados na União Europeia), Luma (plataforma de eventos, lembretes e check-in; empresa estrangeira, então seus dados podem ficar fora do Brasil, em [país a confirmar]) e [Google, se usarmos Planilhas Google]. Isso é uma transferência internacional de dados (art. 33), que se apoia no seu consentimento específico e em destaque (art. 33, VIII). A Luma também tem a própria política de privacidade para o uso da plataforma. A lista de inscritos só é vista pela equipe da Olami que organiza o evento.</p>
+      <p><b>Seus direitos (art. 18):</b> confirmar se tratamos seus dados; acessar seus dados; corrigir; pedir anonimização, bloqueio ou eliminação do que for desnecessário; portabilidade; eliminação dos dados tratados com seu consentimento; saber com quem compartilhamos; saber que você pode não consentir e o que acontece se não consentir; revogar o consentimento; e reclamar à ANPD (art. 18, § 1º). Se você não consentir, não conseguimos fazer a inscrição por este formulário. Fale com [contato] e vemos outra forma de você participar.</p>
+      <p><b>Encarregado (DPO) e canal de contato:</b> [nome do encarregado], [e-mail do encarregado] (art. 41). Pedido de acesso completo é respondido em até 15 dias (art. 19).</p>
+      <p class="caixa">[ ] (obrigatória) Li o aviso acima e autorizo a [nome da associação] a tratar meus dados de inscrição, sabendo que eles podem revelar minha ligação com uma organização judaica (dado sensível), somente para as finalidades 1 a 5 acima, inclusive a transferência internacional para Tally e Luma descrita no aviso.</p>
+      <p>Caixa separada, opcional e desmarcada: [ ] Quero receber convites e novidades da Olami por [ ] WhatsApp [ ] E-mail. Sei que isso também mostra minha ligação com a Olami e que posso sair quando quiser, respondendo "SAIR" ou escrevendo para [contato].</p>
+    </div>
+    <p class="nota">Guarde a prova do consentimento: a resposta com data e hora fica na Tally e na planilha, e o ônus da prova é da Olami (art. 8º, § 2º). A pesquisa achou que a ANPD reconheceu a UE como adequada (Res. CD/ANPD nº 32/2026), mas só pelo resumo da busca. Por isso o texto se apoia no consentimento (art. 33, VIII). Indicar um encarregado é o caminho prudente: há dado sensível, e o guia da ANPD tira a dispensa de quem faz tratamento de alto risco.</p>
+  </section>
+
+  <section>
+    <h2>Migração do Google Forms em 5 passos</h2>
+    <ol>
+      <li><b>Exportar e trancar o histórico (dia 1).</b> Em Respostas, baixe o CSV ou abra no Planilhas. Guarde numa pasta só da coordenação e tire colaboradores antigos.</li>
+      <li><b>Recriar o formulário (dias 1 e 2).</b> Não achei importador do Google Forms na Tally; ela importa do Typeform e, com IA, de PDF ou de um print. Como o formulário muda por causa da LGPD, monte à mão o modelo acima. Não use conversor de terceiro que peça a chave de API da Tally. Na Luma: crie o calendário, um ingresso grátis com Require Approval, a capacidade, a lista de espera e a pergunta "Termos".</li>
+      <li><b>Ligar à planilha (dia 2).</b> Na Tally, em Integrations, conecte o Google Sheets. É grátis, cria uma linha por inscrição e traz as antigas. Na Luma grátis, baixe o CSV com o check-in depois de cada evento.</li>
+      <li><b>Trocar os links e rodar 2 semanas em paralelo.</b> Mude a bio do Instagram, os grupos e a comunidade do WhatsApp, o site e o Linktree. No Forms antigo, deixe só um aviso com o link novo. Toda semana, compare inscritos e presentes.</li>
+      <li><b>Encerrar e apagar (fim da semana 2).</b> Feche o Forms, exporte o que precisa guardar e use "Delete all responses". Na Tally o apagamento automático é do plano Business, então ponha um lembrete mensal: restrição alimentar em 30 dias e inscrições em 12 meses.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Luma × Sympla × Google Forms + Tally</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Critério</th><th>Luma</th><th>Sympla</th><th>Google Forms + Tally</th></tr></thead>
+      <tbody>
+        <tr><td>Evento gratuito</td><td>US$ 0</td><td>R$ 0, sem taxa</td><td>R$ 0</td></tr>
+        <tr><td>Aprovação de inscritos</td><td><b>Sim</b>, por ingresso</td><td>não encontrei</td><td>à mão, na planilha</td></tr>
+        <tr><td>Esconder o endereço até aprovar</td><td><b>Sim</b></td><td>não encontrei</td><td>endereço vai à mão</td></tr>
+        <tr><td>Check-in</td><td>QR no app; papel "só check-in" é Plus</td><td>QR ou lista, <b>offline</b></td><td>lista impressa ou planilha</td></tr>
+        <tr><td>Lembretes</td><td>automáticos, e-mail, push, SMS ou WhatsApp</td><td>e-mail de confirmação; lembrete sem detalhe</td><td>nenhum; e-mail ao inscrito é Pro</td></tr>
+        <tr><td>WhatsApp</td><td>conforme o país; Brasil não confirmado</td><td>só com integração de terceiro</td><td>manual</td></tr>
+        <tr><td>Exportação</td><td>CSV com check-in</td><td>Excel com check-in</td><td>planilha automática</td></tr>
+        <tr><td>Formulário</td><td>7 tipos de pergunta, sem lógica condicional</td><td>pergunta por tipo de ingresso</td><td>lógica condicional grátis</td></tr>
+        <tr><td>Onde ficam os dados</td><td>AWS; país não confirmado</td><td>Brasil ou exterior (EUA, UE)</td><td>Tally na UE; Google não pesquisado</td></tr>
+      </tbody>
+    </table></div>
+    <p class="nota">Fontes de cada célula no <code>pesquisa.md</code> (seção d) e no <code>fontes.csv</code>.</p>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Nenhuma página foi lida por inteiro.</b> Nesta nuvem o WebFetch não abre os sites (erro de DNS em luma.com, tally.so e sympla), então tudo veio dos trechos e resumos do buscador. Das 134 afirmações, 42 foram confirmadas no trecho, 70 só no resumo e 22 ficaram não verificadas.</li>
+      <li><b>A cota de buscas da sessão acabou</b> antes de conferir no planalto.gov.br o art. 8º, § 1º (só achei em fonte de terceiro) e o art. 9º, § 3º, que por isso não foi citado.</li>
+      <li><b>Luma:</b> não verifiquei o WhatsApp para +55, se dá para exigir o telefone na inscrição, se os lembretes de 1 dia e 1 hora ainda valem (a fonte é de 2024), quantos aparelhos fazem check-in ao mesmo tempo, se as perguntas personalizadas e o "Restrict Location" são do grátis, nem o país dos dados.</li>
+      <li><b>Tally:</b> não verifiquei se o checkbox único pode ser obrigatório, nem o preço do Pro (as fontes divergem: US$ 24 ou 29) e os nomes exatos dos blocos no editor.</li>
+      <li><b>Sympla:</b> não confirmei aprovação manual nem o canal e o horário do lembrete automático.</li>
+      <li><b>LGPD:</b> tratar a própria inscrição como dado sensível (art. 11, § 1º) é uma leitura cautelosa. Os prazos de 12 meses e 30 dias são sugestões, não exigência da lei. Isto não é parecer jurídico.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Arquivos deste artifact: <code>pesquisa.md</code> (a pesquisa inteira, com cada item marcado) e <code>fontes.csv</code> (afirmação, link, título, tipo de fonte e verificação). Fontes vistas em 14/10/2026.</footer>
+</main>
+
+<script>
+document.querySelectorAll("[data-copiar]").forEach((botao) => {
+  botao.addEventListener("click", async () => {
+    const alvo = document.getElementById(botao.dataset.copiar);
+    const original = "Copiar texto";
+    try {
+      await navigator.clipboard.writeText(alvo.innerText);
+      botao.textContent = "Copiado";
+    } catch (erro) {
+      const faixa = document.createRange();
+      faixa.selectNodeContents(alvo);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(faixa);
+      botao.textContent = "Texto selecionado: tecle Ctrl+C";
+    }
+    setTimeout(() => { botao.textContent = original; }, 2500);
+  });
+});
+</script>
