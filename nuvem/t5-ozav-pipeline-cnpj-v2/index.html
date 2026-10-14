@@ -1,0 +1,136 @@
+<title>Nuvem · Ozav · pipeline CNPJ v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; entregáveis no topo, detalhes abaixo */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fact { border-top: 2px solid var(--accent); padding-top: 8px; display: grid; gap: 2px; }
+.fact b { font: 600 22px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 5 de 10 · 14/10/2026</div>
+    <h1>Pipeline CNPJ v2</h1>
+    <p class="lead">O <code>pipeline.py</code> da tarefa 1, republicado inteiro, agora lê por padrão o compartilhamento WebDAV da Receita. Ele lista os meses e os arquivos com tamanho, baixa um zip por vez conferindo o tamanho e, se o download cair, apaga e baixa de novo do zero. Também acha sozinho o mês mais recente completo. A opção <code>--fonte-local</code> continua igual.</p>
+    <div class="chips">
+      <span class="chip ok">11 de 11 testes passaram</span>
+      <span class="chip ok">servidor WebDAV falso no pytest</span>
+      <span class="chip warn">fonte real bloqueada nesta nuvem</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Entregáveis</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Arquivo</th><th>Status</th><th>O que é</th></tr></thead>
+      <tbody>
+        <tr><td><code>pipeline.py</code></td><td><span class="chip ok">v2 inteiro</span></td><td>Substitui o da tarefa 1. Filtros, nota, top 1000, contagens e diff continuam iguais; o que muda é a fonte, o download e a escolha do mês.</td></tr>
+        <tr><td><code>test_webdav.py</code></td><td><span class="chip ok">10 de 10</span></td><td>Sobe um servidor WebDAV falso que imita o Nextcloud e testa a listagem, a autenticação, o mês completo, a queda no meio do download, o arquivo curto, a desistência, a ponta a ponta, o regime tributário e a <code>--fonte-local</code>.</td></tr>
+        <tr><td><code>test_pipeline.py</code></td><td><span class="chip ok">1 de 1</span></td><td>O teste de ponta a ponta da tarefa 1, sem mudança, com arquivos sintéticos numa pasta local.</td></tr>
+        <tr><td><code>METODO.md</code></td><td><span class="chip ok">atualizado</span></td><td>Fonte WebDAV, como rodar, rotina semanal e limitações novas. Filtros, CNAE e nota não mudaram.</td></tr>
+        <tr><td><code>cnae_alvo.csv</code></td><td><span class="chip ok">igual</span></td><td>Mesma lista-alvo da tarefa 1, incluída para a pasta rodar sozinha.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>O que mudou</h2>
+    <ol>
+      <li><b>Fonte WebDAV como padrão.</b> <code>PROPFIND</code> com <code>Depth: 1</code> em <code>…/public.php/webdav/Dados/Cadastros/CNPJ/</code> lista as pastas <code>AAAA-MM</code> e, dentro do mês, cada zip com o tamanho. O <code>GET</code> usa Basic auth com o token do link e senha vazia. O download nunca pede <code>Range</code>: em qualquer falha (rede, HTTP, tamanho diferente do anunciado, zip que não abre) o parcial é apagado e o arquivo vem de novo do zero, até 6 vezes, com espera de 2, 4, 8, 16 e 32 s. Só depois de conferido o arquivo ganha o nome final.</li>
+      <li><b>Mês mais recente automático.</b> Sem <code>--mes</code>, vale o mês mais novo que esteja <i>completo</i>: tem Empresas, Estabelecimentos, Sócios e Simples, nenhum arquivo com 0 byte e pelo menos tantas partes de cada tipo quanto o mês anterior. Um mês ainda subindo é pulado com aviso. Se o mês já tem <code>top1000.csv</code>, <code>rodar</code> não faz nada (use <code>--refazer</code>), e quando processa um mês novo já grava o <code>novidades.csv</code> contra o mês anterior da mesma pasta.</li>
+      <li><b><code>--fonte-local</code> mantido.</b> Lê os zips de uma pasta e nunca apaga os originais. Se a pasta se chama <code>2026-10</code>, o mês sai do nome. Serve para os zips que o <code>baixar-e-rodar.sh</code> já trouxe.</li>
+      <li><b>Extras pequenos.</b> <code>python pipeline.py listar</code> mostra os meses e os arquivos com tamanho. <code>--manter-zips</code> guarda os zips em <code>saida/&lt;mês&gt;/zips</code>, e uma rodada seguinte reaproveita os que estão inteiros. Na v1 essa opção não funcionava, porque a limpeza final apagava a pasta onde os zips ficavam. <code>--webdav</code> e <code>--token</code> servem para quando a Receita trocar o link.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Números principais</h2>
+    <div class="facts">
+      <div class="fact"><b>11/11</b><span>testes passando (pytest, Python 3.13, DuckDB 1.5)</span></div>
+      <div class="fact"><b>0</b><span>pedidos com <code>Range</code>: o teste reprova se o cliente pedir retomada</span></div>
+      <div class="fact"><b>6</b><span>tentativas por arquivo, cada uma do zero</span></div>
+      <div class="fact"><b>~7,8 GB</b><span>de zips em 2026-10, segundo a conversa 00</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Para rodar no PC</h2>
+<pre>pip install duckdb requests pytest
+python -m pytest -q                       # 11 testes, ~10 s
+python pipeline.py listar                 # confere a fonte: meses e arquivos com tamanho
+python pipeline.py rodar --dir C:/Users/loren/ozav-cnpj/saida
+# com os zips que o baixar-e-rodar.sh já baixou:
+python pipeline.py rodar --fonte-local C:/Users/loren/ozav-cnpj/zips/2026-10 --dir C:/Users/loren/ozav-cnpj/saida</pre>
+    <p>Para a rotina semanal, agende sempre o mesmo <code>python pipeline.py rodar --dir …</code>. Na semana sem mês novo ele só avisa que o mês já foi processado.</p>
+  </section>
+
+  <section>
+    <h2>Como o teste imita a Receita</h2>
+    <ul>
+      <li>O servidor falso roda em <code>127.0.0.1</code> dentro do pytest, sob <code>/public.php/webdav/Dados/Cadastros/CNPJ/</code>, e responde 401 sem o token certo.</li>
+      <li>O <code>PROPFIND</code> devolve 207 Multi-Status no formato do Nextcloud, inclusive o <code>propstat</code> 404 de tamanho que ele manda para pastas. Os nomes vêm codificados na URL (espaço e acento).</li>
+      <li>Ele publica 2026-09 e 2026-10 completos, um 2026-11 pela metade e um arquivo solto. O pipeline escolhe 2026-10 e, quando 2026-11 completa, passa a escolher 2026-11.</li>
+      <li>Ele pode derrubar a conexão no meio de um zip ou mandar um zip menor que o anunciado. O teste confere que o arquivo final é idêntico ao original, que houve um GET a mais por falha e que não sobra <code>.part</code>.</li>
+      <li>Os zips são os mesmos dados <b>sintéticos</b> da tarefa 1. Nenhum número desta página vem da base real.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Bloqueado nesta sessão:</b> <code>arquivos.receitafederal.gov.br</code> (HTTP 403 no proxy de saída). O <code>python pipeline.py listar</code> rodado daqui falhou exatamente nesse domínio. O endereço e o token foram usados com sucesso no PC pela conversa 00, mas não foram conferidos daqui.</li>
+      <li>O servidor falso imita o formato do Nextcloud, mas não é o servidor da Receita. Se o caminho ou o token mudarem, a listagem para com uma mensagem clara (401, 403 ou 404) e basta passar <code>--webdav</code> e <code>--token</code> novos.</li>
+      <li>Não verificado: onde fica a base de regime tributário no WebDAV. Com <code>--regime</code>, o código procura uma pasta com "regime" no nome ao lado de <code>CNPJ/</code> e um zip com "real" no nome. Se não achar, tenta o endereço antigo e, se falhar, segue sem regime.</li>
+      <li>Um arquivo que ainda está subindo e já aparece na listagem com tamanho parcial não é detectado. A regra de mês completo reduz esse risco, mas não zera.</li>
+      <li>Privacidade igual à tarefa 1: nome de sócio PF nunca é gravado e do e-mail só o domínio. O teste de ponta a ponta confere isso byte a byte.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Arquivos deste artifact: <code>pipeline.py</code>, <code>test_webdav.py</code>, <code>test_pipeline.py</code>, <code>METODO.md</code> e <code>cnae_alvo.csv</code>.</footer>
+</main>
