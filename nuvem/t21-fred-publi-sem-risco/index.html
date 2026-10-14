@@ -1,0 +1,134 @@
+<title>Nuvem · Fred · publi sem risco</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; resumo em chips, tabelas largas com rolagem própria */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.v { font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.neutro { background: var(--code-bg); color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.largo table { min-width: 760px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Fred · tarefa 21 · 14/10/2026</div>
+    <h1>Publi sem risco</h1>
+    <p class="lead">O que vale em outubro de 2026 para publi num perfil de humor corporativo com criador anônimo, um checklist de 10 itens para conferir antes de cada post e como fechar contrato sem expor a identidade. Não é parecer jurídico.</p>
+    <div class="chips">
+      <span class="chip ok">checklist de 10 itens</span>
+      <span class="chip warn">guia do CONAR de 2026 lido só por fonte secundária</span>
+      <span class="chip warn">26 buscas (teto 30)</span>
+      <span class="chip bad">sites oficiais bloqueados nesta rede</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>O essencial</h2>
+    <ul>
+      <li><b>O aviso tem de aparecer na primeira olhada.</b> Pelo guia do CONAR (edição de maio de 2026, com efeitos desde 01/06/2026), a publi é identificada de forma explícita e visível sem tocar em "ver mais". Use as duas coisas: o rótulo "Parceria paga" e "#publi" ou "Publicidade" no começo da legenda e na tela.</li>
+      <li><b>Humor não tem exceção.</b> O CBAP (arts. 9º e 28) e o CDC (art. 36) valem para a esquete. Satirize a própria marca do anunciante, nunca um concorrente nomeado: isso vira publicidade comparativa (CBAP, art. 32; Lei 9.279, art. 195).</li>
+      <li><b>Presente também se declara.</b> O guia novo criou a "mensagem ativada": recebeu da marca, conta.</li>
+      <li><b>Financeiro:</b> só publi institucional. Nada de recomendar produto, nada de rentabilidade, nada de oferta pública, nada de "crédito sem consulta".</li>
+      <li><b>Bet é possível, mas é o maior risco.</b> Exige operador autorizado (verificado antes por toda a cadeia, pela Portaria 73/2026), público majoritariamente adulto, "18+" e uma das frases "Ministério da Fazenda adverte" (desde 17/07/2026).</li>
+      <li><b>O PL 2985/2023</b>, que proíbe influenciador em bet, não está em vigor.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Checklist antes de cada publi</h2>
+    <div class="tbl largo"><table>
+      <thead><tr><th>#</th><th>Confira</th><th>Regra</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>O anunciante pode anunciar: bet autorizada (com print e data), instituição financeira autorizada, crédito sem "sem consulta"</td><td>Portaria 73/2026; CDC, art. 54-C</td></tr>
+        <tr><td class="num">2</td><td>"Parceria paga" ligada em cada post, story e reels</td><td>Meta, conteúdo de marca</td></tr>
+        <tr><td class="num">3</td><td>"#publi" ou "Publicidade" no começo da legenda e na tela, sem precisar de "ver mais"</td><td>Guia CONAR 2026; CBAP, arts. 9º e 28; CDC, art. 36</td></tr>
+        <tr><td class="num">4</td><td>Presente, convite e repost da marca também se declaram</td><td>Guia CONAR 2026</td></tr>
+        <tr><td class="num">5</td><td>Toda afirmação da marca tem prova da marca</td><td>CDC, arts. 36 a 38</td></tr>
+        <tr><td class="num">6</td><td>Sátira da própria marca; nunca de concorrente nomeado; paródia sem descrédito da obra</td><td>CBAP, art. 32; LPI, art. 195; Lei 9.610, art. 47</td></tr>
+        <tr><td class="num">7</td><td>Financeiro só institucional, com o nome da instituição</td><td>Res. CVM 20 e 160; ANBIMA</td></tr>
+        <tr><td class="num">8</td><td>Bet: público adulto comprovado, "18+", frase do Ministério da Fazenda, sem dica de aposta</td><td>Lei 14.790; Portarias 1.231, 1.964 e 73; Anexo X</td></tr>
+        <tr><td class="num">9</td><td>Contrato assinado antes: roteiro aprovado, uso e impulsionamento com prazo, correção em 24 h, sigilo da identidade</td><td>Guia CONAR 2026 (cadeia responsável)</td></tr>
+        <tr><td class="num">10</td><td>Guardar o print do post no ar, o roteiro, o contrato e a autorização da bet por 1 ano</td><td>prazo da ANBIMA, adotado como regra da casa</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Anonimato</h2>
+    <ul>
+      <li><b>O anonimato vale perante o público, não perante quem contrata.</b> A marca e a agência vão saber quem é o criador. O que se protege é a identidade nos posts, nos releases e nos cases.</li>
+      <li><b>Contrato pela PJ do criador</b> (LTDA ou SLU com nome fantasia neutro), assinado pelo administrador ou pela agência com procuração, e com uma <b>cláusula própria de sigilo da identidade</b>. A confidencialidade padrão cobre valor e lançamento, não a identidade.</li>
+      <li><b>Por onde vaza:</b> quadro de sócios no CNPJ, nota fiscal, anunciante público (Lei 12.232/2010), ordem judicial e o eventual credenciamento de influenciador de bet no CONAR.</li>
+      <li><b>Anonimato não tira a responsabilidade.</b> Há decisões estaduais tratando o influenciador como fornecedor por equiparação.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li>Nenhuma fonte oficial abriu nesta rede. Ficaram bloqueados conar.org.br, planalto.gov.br, gov.br, cvm.gov.br, anbima.com.br, facebook.com, help.instagram.com e transparency.meta.com, além de vários escritórios e jornais.</li>
+      <li>O PDF do guia do CONAR de 2026 não foi lido. Há divergência entre comentaristas sobre se a ferramenta da plataforma substitui a hashtag; por isso a recomendação é usar as duas.</li>
+      <li>O texto final da revisão de 2026 do Anexo X (credenciamento de influenciador) não foi visto.</li>
+      <li>Não há nome de criador nem de pessoa nesta entrega.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Arquivos</h2>
+    <div class="tbl"><table><tbody>
+      <tr><td><code>para-a-00.md</code></td><td>Resumo para despachar</td></tr>
+      <tr><td><code>checklist-10.md</code></td><td>Os 10 itens, para a agência</td></tr>
+      <tr><td><code>regras.md</code></td><td>As regras por tema, com o grau de verificação de cada uma</td></tr>
+      <tr><td><code>anonimato.md</code></td><td>Contrato, sigilo da identidade e por onde vaza</td></tr>
+      <tr><td><code>pesquisa.md</code></td><td>A pesquisa completa, com as URLs, as buscas e os domínios bloqueados</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Nenhuma conta, nenhuma mensagem enviada, nenhum dado pessoal. Não é parecer jurídico.</footer>
+</main>
