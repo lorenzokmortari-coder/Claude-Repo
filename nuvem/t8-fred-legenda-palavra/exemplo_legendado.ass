@@ -1,0 +1,36 @@
+[Script Info]
+; Gerado por legenda_reels.py
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Reels,Inter Display Black,86,&H00FFFFFF,&H004DE1FF,&H00000000,&H60000000,-1,0,0,0,100,100,0,0,1,7,4,5,65,130,0,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.50,0:00:00.94,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}BOM{\r} DIA,\NPESSOAL.
+Dialogue: 0,0:00:00.94,0:00:01.48,Reels,,0,0,0,,{\an5\pos(508,1114)}BOM {\c&H004DE1FF\fscx112\fscy112}DIA,{\r}\NPESSOAL.
+Dialogue: 0,0:00:01.48,0:00:02.30,Reels,,0,0,0,,{\an5\pos(508,1114)}BOM DIA,\N{\c&H004DE1FF\fscx112\fscy112}PESSOAL.{\r}
+Dialogue: 0,0:00:02.60,0:00:02.88,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}A{\r} REUNIÃO
+Dialogue: 0,0:00:02.88,0:00:03.56,Reels,,0,0,0,,{\an5\pos(508,1114)}A {\c&H004DE1FF\fscx112\fscy112}REUNIÃO{\r}
+Dialogue: 0,0:00:03.56,0:00:03.80,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}DE{\r} HOJE COMEÇA
+Dialogue: 0,0:00:03.80,0:00:04.15,Reels,,0,0,0,,{\an5\pos(508,1114)}DE {\c&H004DE1FF\fscx112\fscy112}HOJE{\r} COMEÇA
+Dialogue: 0,0:00:04.15,0:00:04.74,Reels,,0,0,0,,{\an5\pos(508,1114)}DE HOJE {\c&H004DE1FF\fscx112\fscy112}COMEÇA{\r}
+Dialogue: 0,0:00:04.74,0:00:05.19,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}ÀS{\r} NOVE\NEM PONTO.
+Dialogue: 0,0:00:05.19,0:00:05.61,Reels,,0,0,0,,{\an5\pos(508,1114)}ÀS {\c&H004DE1FF\fscx112\fscy112}NOVE{\r}\NEM PONTO.
+Dialogue: 0,0:00:05.61,0:00:06.03,Reels,,0,0,0,,{\an5\pos(508,1114)}ÀS NOVE\N{\c&H004DE1FF\fscx112\fscy112}EM{\r} PONTO.
+Dialogue: 0,0:00:06.03,0:00:06.65,Reels,,0,0,0,,{\an5\pos(508,1114)}ÀS NOVE\NEM {\c&H004DE1FF\fscx112\fscy112}PONTO.{\r}
+Dialogue: 0,0:00:06.95,0:00:07.42,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}QUEM{\r} CHEGAR\NATRASADO
+Dialogue: 0,0:00:07.42,0:00:07.99,Reels,,0,0,0,,{\an5\pos(508,1114)}QUEM {\c&H004DE1FF\fscx112\fscy112}CHEGAR{\r}\NATRASADO
+Dialogue: 0,0:00:07.99,0:00:08.77,Reels,,0,0,0,,{\an5\pos(508,1114)}QUEM CHEGAR\N{\c&H004DE1FF\fscx112\fscy112}ATRASADO{\r}
+Dialogue: 0,0:00:08.77,0:00:09.62,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}APRESENTA{\r} O\NRELATÓRIO
+Dialogue: 0,0:00:09.62,0:00:09.90,Reels,,0,0,0,,{\an5\pos(508,1114)}APRESENTA {\c&H004DE1FF\fscx112\fscy112}O{\r}\NRELATÓRIO
+Dialogue: 0,0:00:09.90,0:00:10.63,Reels,,0,0,0,,{\an5\pos(508,1114)}APRESENTA O\N{\c&H004DE1FF\fscx112\fscy112}RELATÓRIO{\r}
+Dialogue: 0,0:00:10.63,0:00:10.90,Reels,,0,0,0,,{\an5\pos(508,1114)}{\c&H004DE1FF\fscx112\fscy112}DO{\r} TRIMESTRE\NINTEIRO.
+Dialogue: 0,0:00:10.90,0:00:11.57,Reels,,0,0,0,,{\an5\pos(508,1114)}DO {\c&H004DE1FF\fscx112\fscy112}TRIMESTRE{\r}\NINTEIRO.
+Dialogue: 0,0:00:11.57,0:00:12.33,Reels,,0,0,0,,{\an5\pos(508,1114)}DO TRIMESTRE\N{\c&H004DE1FF\fscx112\fscy112}INTEIRO.{\r}

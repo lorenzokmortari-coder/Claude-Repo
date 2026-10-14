@@ -1,0 +1,128 @@
+[
+ {
+  "inicio": 0.5,
+  "fim": 0.861,
+  "texto": "Bom",
+  "prob": null
+ },
+ {
+  "inicio": 0.941,
+  "fim": 1.185,
+  "texto": "dia,",
+  "prob": null
+ },
+ {
+  "inicio": 1.485,
+  "fim": 2.047,
+  "texto": "pessoal.",
+  "prob": null
+ },
+ {
+  "inicio": 2.597,
+  "fim": 2.802,
+  "texto": "A",
+  "prob": null
+ },
+ {
+  "inicio": 2.882,
+  "fim": 3.476,
+  "texto": "reunião",
+  "prob": null
+ },
+ {
+  "inicio": 3.556,
+  "fim": 3.723,
+  "texto": "de",
+  "prob": null
+ },
+ {
+  "inicio": 3.803,
+  "fim": 4.068,
+  "texto": "hoje",
+  "prob": null
+ },
+ {
+  "inicio": 4.148,
+  "fim": 4.656,
+  "texto": "começa",
+  "prob": null
+ },
+ {
+  "inicio": 4.736,
+  "fim": 5.106,
+  "texto": "às",
+  "prob": null
+ },
+ {
+  "inicio": 5.186,
+  "fim": 5.529,
+  "texto": "nove",
+  "prob": null
+ },
+ {
+  "inicio": 5.609,
+  "fim": 5.948,
+  "texto": "em",
+  "prob": null
+ },
+ {
+  "inicio": 6.028,
+  "fim": 6.4,
+  "texto": "ponto.",
+  "prob": null
+ },
+ {
+  "inicio": 6.95,
+  "fim": 7.342,
+  "texto": "Quem",
+  "prob": null
+ },
+ {
+  "inicio": 7.422,
+  "fim": 7.911,
+  "texto": "chegar",
+  "prob": null
+ },
+ {
+  "inicio": 7.991,
+  "fim": 8.687,
+  "texto": "atrasado",
+  "prob": null
+ },
+ {
+  "inicio": 8.767,
+  "fim": 9.542,
+  "texto": "apresenta",
+  "prob": null
+ },
+ {
+  "inicio": 9.622,
+  "fim": 9.819,
+  "texto": "o",
+  "prob": null
+ },
+ {
+  "inicio": 9.899,
+  "fim": 10.553,
+  "texto": "relatório",
+  "prob": null
+ },
+ {
+  "inicio": 10.633,
+  "fim": 10.818,
+  "texto": "do",
+  "prob": null
+ },
+ {
+  "inicio": 10.898,
+  "fim": 11.493,
+  "texto": "trimestre",
+  "prob": null
+ },
+ {
+  "inicio": 11.573,
+  "fim": 12.079,
+  "texto": "inteiro.",
+  "prob": null
+ }
+]
