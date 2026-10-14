@@ -1,0 +1,142 @@
+<title>Nuvem · Ozav · esteira mensal de prospecção</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; esteira em etapas, tabelas largas com rolagem própria */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.largo table { min-width: 700px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+code { font-family: var(--mono); font-size: 13px; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.etapas { list-style: none; padding: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.etapas li { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.etapas li:last-child { border-bottom: 0; }
+.etapas b { font: 500 13px/1.5 var(--mono); color: var(--accent); }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 26 · 14/10/2026</div>
+    <h1>Esteira mensal de prospecção</h1>
+    <p class="lead">Um comando só junta as quatro peças que estavam soltas: pipeline CNPJ v2, filtro de ICP, enriquecimento de site e vigia de concorrentes. Sai a lista do mês, o que mudou desde o mês anterior e um arquivo pronto para o PC subir no CRM. A esteira não escreve no CRM e não manda mensagem.</p>
+    <div class="chips">
+      <span class="chip ok">36 testes verdes, 14 novos</span>
+      <span class="chip ok">retoma de onde parou</span>
+      <span class="chip ok">concorrente fica fora</span>
+      <span class="chip warn">sem dado real nesta nuvem</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Rodar no PC, num mês já baixado</h2>
+<pre>pip install duckdb requests selectolax phonenumbers pandas pytest
+cd esteira
+python -m pytest -q
+python esteira.py --mes 2026-10 --fonte-local C:/Users/&lt;você&gt;/ozav-cnpj/zips/2026-10</pre>
+    <p>A saída vai para <code>saida/2026-10/esteira/</code>. Se cair no meio, o mesmo comando retoma: o mês da Receita não é refeito e os sites já lidos ficam no cache. Mudou o <code>icp.ini</code>? Rode de novo; só o filtro, os sites novos e a nota são refeitos.</p>
+  </section>
+
+  <section>
+    <h2>As etapas</h2>
+    <ol class="etapas">
+      <li><b>cnpj</b><span>O <code>pipeline.py</code> lê os zips da pasta local e grava a base qualificada com a nota CNPJ. Se o mês já foi processado, é reaproveitado.</span></li>
+      <li><b>icp</b><span>Aplica o <code>icp.ini</code>, que o dono edita: UF, capital, porte, idade, vínculo estrangeiro, nota mínima e CNAE fora. Tira quem está no <code>concorrentes.csv</code> (por domínio e por nome), na <code>exclusao_extra.csv</code> e no retrato do cadastro do BC, se houver.</span></li>
+      <li><b>site</b><span>O <code>enriquecer_site.py</code> visita os 1.500 primeiros. Respeita o robots.txt, faz 1 pedido por segundo por domínio, guarda só e-mail de função e nunca abre o LinkedIn.</span></li>
+      <li><b>nota</b><span>A nota final é 0,7 × nota CNPJ + 0,3 × nota do site (sinais com peso no <code>icp.ini</code>), com o motivo em uma linha. Um site que redireciona para concorrente cai aqui.</span></li>
+      <li><b>saídas</b><span><code>top1000.csv</code>, <code>novidades.md</code>, <code>crm.jsonl</code>, mais <code>excluidos.csv</code>, <code>mudancas.csv</code> e <code>RODADA.md</code>.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Exemplo sintético (top 10 de 2026-10)</h2>
+    <div class="tbl largo"><table>
+      <thead><tr><th>#</th><th>Empresa</th><th>Nota</th><th>CNPJ</th><th>Site</th><th>Motivo</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>IOTA CARGAS TESTE</td><td class="num">77,3</td><td class="num">89,0</td><td class="num">50</td><td>PJ estrangeira; logística internacional; capital R$ 50 mi; site: matriz em Roterdã, comércio exterior</td></tr>
+        <tr><td class="num">2</td><td>ALFA SOFTWARE TESTE</td><td class="num">77,0</td><td class="num">84,3</td><td class="num">60</td><td>PJ estrangeira; software; site: matriz em Nova York, importa, vaga de comex; e-mail comercial@</td></tr>
+        <tr><td class="num">3</td><td>EPSILON TRADING TESTE</td><td class="num">57,8</td><td class="num">78,3</td><td class="num">10</td><td>Entrou no mês: ganhou sócio PJ estrangeiro</td></tr>
+        <tr><td class="num">4</td><td>KAPPA TI TESTE</td><td class="num">57,2</td><td class="num">81,7</td><td class="num">0</td><td>E-mail no Gmail: o site não é visitado</td></tr>
+        <tr><td class="num">5</td><td>BETA LOGÍSTICA TESTE</td><td class="num">55,3</td><td class="num">79,0</td><td class="num">0</td><td>O robots.txt bloqueia: só ele foi pedido</td></tr>
+      </tbody>
+    </table></div>
+    <p class="nota-fonte">Fora da lista, em <code>excluidos.csv</code>: DEEL BRASIL TESTE (concorrente pelo nome), ZULU (e-mail em ebury.com) e OMEGA08 (o site redireciona para br.ebury.com). No <code>novidades.md</code>: EPSILON entrou, ETA saiu ("saiu da base qualificada da Receita") e IOTA mudou de nota (66,1 → 77,3). Tudo inventado pelo <code>gerar_receita.py</code>.</p>
+  </section>
+
+  <section>
+    <h2>O que os testes garantem</h2>
+    <ul>
+      <li>Saem de fora o concorrente pelo nome (Deel, dLocal, Airwallex, o antigo "Bexs"), pelo domínio e pelo redirecionamento, e nenhum deles é visitado. "INTER TRANSPORTES" e "WISEMAN" não saem.</li>
+      <li>O robots.txt é respeitado. O ritmo é de 1 pedido por segundo por domínio, medido na saída de cada pedido. Só há GET: nenhum POST.</li>
+      <li>Nenhum nome de pessoa, e-mail pessoal ou LinkedIn aparece no top, no CRM, nas novidades ou nas exclusões.</li>
+      <li>A rodada derrubada no meio do site retoma sem revisitar nada e chega ao mesmo top de uma rodada limpa. Rodar de novo não faz nenhum pedido e dá os mesmos bytes.</li>
+      <li>As suítes antigas do pipeline (11), do site (9) e do vigia (2) continuam verdes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitações e o que decidir</h2>
+    <ul>
+      <li>Nada rodou com a Receita nem com site real: os dois são bloqueados aqui. O tempo de 25 a 40 min para 1.500 sites é conta, não medida.</li>
+      <li>A exclusão por nome pode errar com nome real. Confira o <code>excluidos.csv</code> na primeira rodada.</li>
+      <li>Fica para o dono decidir:
+        <ul>
+          <li>os pesos 0,7 e 0,3;</li>
+          <li>quantos candidatos vão ao site;</li>
+          <li>se o ritmo é de 1 pedido por segundo por domínio (o padrão) ou no total (<code>workers = 1</code>, cerca de 1,5 h).</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Arquivos</h2>
+    <div class="tbl"><table><tbody>
+      <tr><td><code>para-a-00.md</code></td><td>Resumo e mensagem pronta para a 16 · Ozav · Hunting</td></tr>
+      <tr><td><code>LEIA-ME.md</code></td><td>Instalação, comando, configuração e saídas</td></tr>
+      <tr><td><code>esteira/esteira.py</code>, <code>icp.ini</code>, <code>exclusao_extra.csv</code></td><td>A esteira e o que o dono edita</td></tr>
+      <tr><td><code>esteira/pipeline.py</code>, <code>enriquecer_site.py</code>, <code>vigia_bc.py</code>, <code>cnae_alvo.csv</code>, <code>concorrentes.csv</code></td><td>As peças das tarefas 5, 6 e 4, sem mudança</td></tr>
+      <tr><td><code>esteira/test_esteira.py</code>, <code>gerar_receita.py</code> e os testes antigos</td><td>Testes de ponta a ponta e o gerador sintético da Receita</td></tr>
+      <tr><td><code>exemplo/</code></td><td>As saídas do exemplo sintético</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Todo o material de teste é sintético; nenhuma empresa ou pessoa real.</footer>
+</main>

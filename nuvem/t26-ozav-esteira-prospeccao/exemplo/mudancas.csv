@@ -1,0 +1,4 @@
+evento,cnpj,razao_social,detalhe,nota
+entrou,66666666000101,EPSILON TRADING TESTE LTDA,"PJ estrangeira (EPSILON TRADE CO LTD, PAIS FICTICIO B); CNAE Comércio atacadista e importação (0,90); capital R$ 1,5 mi; site: importa",57.8
+saiu,77777777000101,ETA SOFTWARE TESTE LTDA,"saiu da base qualificada da Receita (situação, sócio estrangeiro, Simples, capital ou CNAE)",56.1
+mudou,88888888000101,IOTA CARGAS TESTE LTDA,nota 66.1 → 77.3,77.3
