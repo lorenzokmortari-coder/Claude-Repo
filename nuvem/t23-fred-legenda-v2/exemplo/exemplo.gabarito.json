@@ -1,0 +1,110 @@
+[
+ {
+  "inicio": 0.5,
+  "fim": 0.765,
+  "texto": "Bom",
+  "prob": null
+ },
+ {
+  "inicio": 0.845,
+  "fim": 1.11,
+  "texto": "dia,",
+  "prob": null
+ },
+ {
+  "inicio": 1.41,
+  "fim": 1.895,
+  "texto": "pessoal.",
+  "prob": null
+ },
+ {
+  "inicio": 2.445,
+  "fim": 2.6,
+  "texto": "A",
+  "prob": null
+ },
+ {
+  "inicio": 2.68,
+  "fim": 3.165,
+  "texto": "reunião",
+  "prob": null
+ },
+ {
+  "inicio": 3.245,
+  "fim": 3.675,
+  "texto": "começa",
+  "prob": null
+ },
+ {
+  "inicio": 3.755,
+  "fim": 3.965,
+  "texto": "às",
+  "prob": null
+ },
+ {
+  "inicio": 4.045,
+  "fim": 4.31,
+  "texto": "5:45",
+  "prob": null
+ },
+ {
+  "inicio": 4.39,
+  "fim": 4.6,
+  "texto": "em",
+  "prob": null
+ },
+ {
+  "inicio": 4.68,
+  "fim": 5.055,
+  "texto": "ponto.",
+  "prob": null
+ },
+ {
+  "inicio": 5.605,
+  "fim": 5.925,
+  "texto": "Quem",
+  "prob": null
+ },
+ {
+  "inicio": 6.005,
+  "fim": 6.435,
+  "texto": "chegar",
+  "prob": null
+ },
+ {
+  "inicio": 6.515,
+  "fim": 6.89,
+  "texto": "tarde",
+  "prob": null
+ },
+ {
+  "inicio": 6.97,
+  "fim": 7.29,
+  "texto": "paga",
+  "prob": null
+ },
+ {
+  "inicio": 7.37,
+  "fim": 7.525,
+  "texto": "o",
+  "prob": null
+ },
+ {
+  "inicio": 7.605,
+  "fim": 7.925,
+  "texto": "café",
+  "prob": null
+ },
+ {
+  "inicio": 8.005,
+  "fim": 8.215,
+  "texto": "da",
+  "prob": null
+ },
+ {
+  "inicio": 8.295,
+  "fim": 8.725,
+  "texto": "equipe.",
+  "prob": null
+ }
+]
