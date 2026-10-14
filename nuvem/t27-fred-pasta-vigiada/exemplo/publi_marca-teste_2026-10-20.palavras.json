@@ -1,0 +1,111 @@
+{
+ "revisado": false,
+ "conferencia": "f205578e13fd296e",
+ "modelo": "medium",
+ "termos": [],
+ "video": "publi_marca-teste_2026-10-20.mp4",
+ "palavras": [
+  {
+   "inicio": 0.5,
+   "fim": 0.861,
+   "texto": "Bom",
+   "prob": 0.95
+  },
+  {
+   "inicio": 0.941,
+   "fim": 1.185,
+   "texto": "dia,",
+   "prob": 0.95
+  },
+  {
+   "inicio": 1.485,
+   "fim": 2.047,
+   "texto": "pessoal.",
+   "prob": 0.95
+  },
+  {
+   "inicio": 2.597,
+   "fim": 2.903,
+   "texto": "Essa",
+   "prob": 0.95
+  },
+  {
+   "inicio": 2.983,
+   "fim": 3.478,
+   "texto": "aposta",
+   "prob": 0.3
+  },
+  {
+   "inicio": 3.558,
+   "fim": 4.087,
+   "texto": "é",
+   "prob": 0.95
+  },
+  {
+   "inicio": 4.167,
+   "fim": 4.846,
+   "texto": "garantida,",
+   "prob": 0.95
+  },
+  {
+   "inicio": 5.146,
+   "fim": 5.583,
+   "texto": "rende",
+   "prob": 0.95
+  },
+  {
+   "inicio": 5.663,
+   "fim": 6.304,
+   "texto": "certinho.",
+   "prob": 0.95
+  },
+  {
+   "inicio": 6.854,
+   "fim": 7.246,
+   "texto": "Quem",
+   "prob": 0.3
+  },
+  {
+   "inicio": 7.326,
+   "fim": 7.815,
+   "texto": "chegar",
+   "prob": 0.95
+  },
+  {
+   "inicio": 7.895,
+   "fim": 8.265,
+   "texto": "tarde",
+   "prob": 0.95
+  },
+  {
+   "inicio": 8.345,
+   "fim": 8.673,
+   "texto": "paga",
+   "prob": 0.95
+  },
+  {
+   "inicio": 8.753,
+   "fim": 8.951,
+   "texto": "o",
+   "prob": 0.95
+  },
+  {
+   "inicio": 9.031,
+   "fim": 9.451,
+   "texto": "café",
+   "prob": 0.95
+  },
+  {
+   "inicio": 9.531,
+   "fim": 9.758,
+   "texto": "da",
+   "prob": 0.95
+  },
+  {
+   "inicio": 9.838,
+   "fim": 10.285,
+   "texto": "equipe.",
+   "prob": 0.95
+  }
+ ]
+}

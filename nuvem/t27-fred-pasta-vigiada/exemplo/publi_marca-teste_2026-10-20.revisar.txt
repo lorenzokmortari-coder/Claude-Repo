@@ -1,0 +1,12 @@
+PELO VIGIA · publi_marca-teste_2026-10-20.mp4
+1. Corrija o "texto" das palavras erradas em publi_marca-teste_2026-10-20.palavras.json (esta pasta).
+2. Quando terminar, crie nesta pasta um arquivo vazio chamado publi_marca-teste_2026-10-20.ok.
+3. A próxima rodada do vigia queima a legenda e põe o vídeo em saida/. Não rode o queimar à mão.
+   Os publi_marca-teste_2026-10-20_previa_N.png mostram a legenda AINDA SEM REVISÃO, só para ver posição e tamanho.
+
+REVISÃO · publi_marca-teste_2026-10-20.mp4 · 2 de 17 palavras com prob < 0.5 (modelo medium)
+Marca, nome e fala coloquial (tá, tô, pra, né) ficam como foram ditos.
+
+tempo      prob  palavra            contexto
+00:02.98   0.30  aposta             Bom dia, pessoal. Essa ⟦aposta⟧ é garantida, rende certinho.
+00:06.85   0.30  Quem               é garantida, rende certinho. ⟦Quem⟧ chegar tarde paga o
