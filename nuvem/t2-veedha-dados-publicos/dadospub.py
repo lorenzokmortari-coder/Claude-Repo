@@ -28,6 +28,7 @@ import io
 import re
 import sys
 import time
+import urllib.parse
 import zipfile
 from functools import lru_cache
 from pathlib import Path
@@ -50,10 +51,17 @@ def _data(x) -> dt.date:
     return pd.Timestamp(x).date()
 
 
+def _qs(params: dict | None) -> str | None:
+    """Query string com `$` literal (padrão OData) e espaço como %20."""
+    if not params:
+        return None
+    return urllib.parse.urlencode(params, safe="$',()", quote_via=urllib.parse.quote)
+
+
 def _get(url: str, params: dict | None = None, tentativas: int = 4, timeout: int = 60) -> requests.Response:
     for i in range(tentativas):
         try:
-            r = requests.get(url, params=params, headers=UA, timeout=timeout)
+            r = requests.get(url, params=_qs(params), headers=UA, timeout=timeout)
             if r.status_code in (429, 500, 502, 503, 504):
                 raise requests.HTTPError(f"HTTP {r.status_code}", response=r)
             r.raise_for_status()
