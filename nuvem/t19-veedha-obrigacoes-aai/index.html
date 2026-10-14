@@ -1,0 +1,153 @@
+<title>Nuvem · Veedha · obrigações do AAI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; resumo em chips, tabelas largas com rolagem própria */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.v { font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.neutro { background: var(--code-bg); color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.largo table { min-width: 760px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Veedha · tarefa 19 · 14/10/2026</div>
+    <h1>Obrigações do AAI</h1>
+    <p class="lead">O que o assessor de investimento credenciado à XP e sócio de escritório precisa cumprir além do que escreve a cliente. Cada linha traz a norma, o texto curto, a fonte desse texto, como cumprir (interpretação), a frequência e se o motor confere sozinho. Depois vêm os pontos em que o próprio motor bate, ou pode bater, numa vedação. Não é parecer jurídico.</p>
+    <div class="chips">
+      <span class="chip ok">30 obrigações no checklist</span>
+      <span class="chip ok">9 pontos motor × vedação</span>
+      <span class="chip warn">textos oficiais bloqueados nesta rede</span>
+      <span class="chip warn">32 buscas (teto 40)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>De onde vem o texto da norma</h2>
+    <p>A CVM, o Planalto, a ANBIMA, a ANCORD e a XP recusaram conexão nesta nuvem. Por isso, cada linha diz a fonte do texto:</p>
+    <ul>
+      <li><b>catálogo do motor:</b> <code>lib/normas.js</code>, levantamento de 10/09/2026, marcado como confirmado no código e não reconferido hoje;</li>
+      <li><b>trecho do buscador</b> desta rodada;</li>
+      <li><b>só fonte secundária;</b></li>
+      <li><b>não verificado.</b></li>
+    </ul>
+    <p>Nada foi completado de memória: o art. 25, incisos IV e V, e o prazo de comunicação cadastral ficaram como lacuna.</p>
+  </section>
+
+  <section>
+    <h2>O checklist, por grupo</h2>
+    <div class="tbl largo"><table>
+      <thead><tr><th>Grupo</th><th>O que é</th><th>Frequência</th><th>Motor confere?</th></tr></thead>
+      <tbody>
+        <tr><td>Registro e credenciamento</td><td>Registro ativo (Lei 6.385, art. 16); credenciamento ANCORD; PEC a cada 5 anos; um único escritório PJ; cadastro de quem atua e "sócio não atuante"</td><td>contínuo; ciclo de 5 anos</td><td><span class="v warn">dá para pôr</span> aviso do PEC</td></tr>
+        <tr><td>Atuação (art. 2º e 3º da Res. 178)</td><td>Preposto da XP; só prospecção, ordens e informação; identificar todos os intermediários; recomendar dentro do suitability da XP; nada de análise ou consultoria</td><td>cada interação</td><td><span class="v ok">sim</span> no texto (R13, R15, R16)</td></tr>
+        <tr><td>Vedações do art. 25</td><td>I dinheiro do cliente; II procuração; III análise, consultoria e carteira, mesmo de graça; VI senha do cliente; VII extrato de posição; IV e V sem texto visto</td><td>contínuo</td><td><span class="v ok">sim</span> no texto (R10 a R14); não vê anexo</td></tr>
+        <tr><td>Comunicação</td><td>Rodapé do art. 24 (XP, assessor contratado, ouvidoria, igual destaque); remuneração quando pedirem; sem promessa (ANBIMA); período de silêncio (Res. 160); envio em massa</td><td>cada peça</td><td><span class="v warn">em parte</span> sem o texto oficial do rodapé</td></tr>
+        <tr><td>Ordens e registros</td><td>Diálogo em sistema de gravação (Res. 35, art. 14); guarda por 5 anos; termo de ciência (art. 37, §2º)</td><td>contínuo</td><td><span class="v bad">não</span> há log (L02)</td></tr>
+        <tr><td>Conflito e PLD</td><td>Não privilegiar interesse próprio (Res. 35); política de PLD da XP (Res. 50)</td><td>contínuo</td><td><span class="v warn">em parte</span> (R40)</td></tr>
+        <tr><td>LGPD</td><td>Base legal, opt-out absoluto, registro das operações, segurança, fornecedores e transferência internacional, incidente em 3 dias úteis (fonte secundária)</td><td>implantação e eventos</td><td><span class="v warn">em parte</span> (R01 a R03)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="nota-fonte">As 30 linhas completas, com citação, fonte e URL, estão em <code>checklist.csv</code> (separador ;) e <code>checklist.md</code>.</p>
+  </section>
+
+  <section>
+    <h2>Onde o motor bate numa vedação</h2>
+    <div class="tbl largo"><table>
+      <thead><tr><th>#</th><th>Gravidade</th><th>Ponto</th><th>Norma</th></tr></thead>
+      <tbody>
+        <tr><td class="num">V01</td><td><span class="v bad">ALTO</span></td><td>Nada registra o que saiu, para quem, com que perfil e com que aprovação. É a lacuna L02, e dela dependem a L03 e a L14.</td><td>Res. 35 (5 anos); Res. 178, arts. 29, §1º e 41 (segundo o vault)</td></tr>
+        <tr><td class="num">V02</td><td><span class="v bad">ALTO</span></td><td>A carteira lê posição. Um anexo (planilha, PDF, imagem) com posição passaria sem leitura, porque o portão só lê texto.</td><td>Res. 178, art. 25, VII</td></tr>
+        <tr><td class="num">V03</td><td><span class="v warn">MÉDIO</span></td><td>WhatsApp fora de sistema de gravação (aviso por decisão D02); a ponte guarda conversa sem retenção nem base legal documentadas</td><td>Res. 35, art. 14; LGPD</td></tr>
+        <tr><td class="num">V04</td><td><span class="v warn">MÉDIO</span></td><td>O prompt do <code>redigir</code> pode levar dado de cliente ao provedor do modelo. O modelo segue congelado; isto é só sobre o que vai no prompt.</td><td>LGPD, arts. 33 e 39</td></tr>
+        <tr><td class="num">V05</td><td><span class="v warn">MÉDIO</span></td><td>O coletor lê a tela do Hub com a sessão do assessor; a política da XP sobre isso não foi lida</td><td>contrato e política da XP</td></tr>
+        <tr><td class="num">V06</td><td><span class="v warn">MÉDIO</span></td><td>Envio em massa: os modelos sem produto estão ok; produto em massa precisa do perfil de cada destinatário, e falta a tabela de classes (L10)</td><td>Res. 20, art. 1º; Res. 30, art. 6º</td></tr>
+        <tr><td class="num">V07</td><td><span class="v warn">MÉDIO</span></td><td>Sem o texto oficial do rodapé, nada com produto sai do motor; conversa pura dispensa por decisão do Lorenzo</td><td>Res. 178, art. 24</td></tr>
+        <tr><td class="num">V08</td><td><span class="v neutro">BAIXO</span></td><td>Aviso de vencimento sem valor: é a calibragem D03, a confirmar com a XP</td><td>Res. 178, art. 25, VII</td></tr>
+        <tr><td class="num">V09</td><td><span class="v neutro">BAIXO</span></td><td>O motor não avisa o prazo do PEC nem confere o credenciamento</td><td>PEC ANCORD; Lei 6.385, art. 16</td></tr>
+      </tbody>
+    </table></div>
+    <p class="nota-fonte">Cada ponto, com cenário, interpretação e o que o motor pode conferir sozinho, está em <code>motor-x-vedacoes.md</code>.</p>
+  </section>
+
+  <section>
+    <h2>Mensagem em massa: o que se achou</h2>
+    <p>Não foi achada norma específica da CVM, da ANCORD ou da ANBIMA sobre disparo em massa. O risco vem de três lados:</p>
+    <ul>
+      <li><b>Res. CVM 20, art. 1º:</b> texto próprio sobre ativo específico mandado a muitos é relatório de análise, "ainda que restrita a clientes".</li>
+      <li><b>Res. CVM 30:</b> o perfil é de cada um.</li>
+      <li><b>Política da XP:</b> não lida.</li>
+    </ul>
+    <p>Os 5 modelos aprovados, sem produto, não batem em nenhuma das três.</p>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li>Nenhum texto oficial abriu. Ficaram bloqueados conteudo.cvm.gov.br, gov.br, planalto.gov.br, anbima.com.br, ancord.org.br, xpi.com.br, bsmsupervisao.com.br, b3.com.br e agregadores. A lista completa está em <code>pesquisa.md</code>.</li>
+      <li>O art. 25 completo, o art. 24 inteiro e o prazo de comunicação cadastral não foram vistos; ficaram como lacuna, não de memória.</li>
+      <li>Fila, coletor, carteira, ponte e <code>redigir</code> estão fora do pacote: os pontos V02 a V06 vêm da descrição deles.</li>
+      <li>Os manuais da XP (compliance do assessor, materiais publicitários, canais) são a lacuna que mais muda as respostas.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Arquivos</h2>
+    <div class="tbl"><table>
+      <tbody>
+        <tr><td><code>para-a-00.md</code></td><td>Resumo para despachar</td></tr>
+        <tr><td><code>checklist.csv</code>, <code>checklist.md</code></td><td>As 30 obrigações</td></tr>
+        <tr><td><code>motor-x-vedacoes.md</code></td><td>Os 9 pontos do motor</td></tr>
+        <tr><td><code>pesquisa.md</code></td><td>A pesquisa com as fontes, o grau de verificação de cada uma e os domínios bloqueados</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Sem dado de cliente, sem nome de pessoa e sem código do pacote. Não é parecer jurídico.</footer>
+</main>
