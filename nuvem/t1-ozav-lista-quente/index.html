@@ -1,0 +1,135 @@
+<title>Nuvem · Ozav · lista quente CNPJ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), tabela de entregáveis no topo, detalhes abaixo */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fact { border-top: 2px solid var(--accent); padding-top: 8px; display: grid; gap: 2px; }
+.fact b { font: 600 22px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 1 de 4 · 14/10/2026</div>
+    <h1>Lista quente CNPJ</h1>
+    <p class="lead">Pipeline em Python + DuckDB que acha subsidiárias e filiais de empresas estrangeiras nos Dados Abertos do CNPJ e dá uma nota de 0 a 100 a cada uma. O código está pronto e testado. A lista real não foi gerada porque a rede desta sessão bloqueia o servidor da Receita.</p>
+    <div class="chips">
+      <span class="chip ok">pipeline.py testado</span>
+      <span class="chip ok">METODO.md</span>
+      <span class="chip bad">top1000.csv não gerado</span>
+      <span class="chip bad">contagens.csv não gerado</span>
+      <span class="chip bad">novidades.csv não gerado</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Entregáveis</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Arquivo</th><th>Status</th><th>O que é</th></tr></thead>
+      <tbody>
+        <tr><td><code>pipeline.py</code></td><td><span class="chip ok">entregue</span></td><td>Baixa, filtra e apaga um arquivo por vez (Sócios → Empresas → Simples → Estabelecimentos), gera a nota, o top 1000, as contagens e o diff entre meses.</td></tr>
+        <tr><td><code>METODO.md</code></td><td><span class="chip ok">entregue</span></td><td>Fonte, filtros, lista de CNAE, fórmula da nota, rotina mensal e diff.</td></tr>
+        <tr><td><code>cnae_alvo.csv</code></td><td><span class="chip ok">entregue</span></td><td>42 prefixos de CNAE em 12 grupos, cada um com peso e justificativa. É editável.</td></tr>
+        <tr><td><code>test_pipeline.py</code></td><td><span class="chip ok">1 de 1 passou</span></td><td>Teste de ponta a ponta com arquivos <b>sintéticos</b> no layout da Receita. Cobre os filtros, a nota, o diff e a privacidade.</td></tr>
+        <tr><td><code>top1000.csv</code></td><td><span class="chip bad">não gerado</span></td><td>Depende dos arquivos da Receita, que não foram baixados por causa do bloqueio de rede. Sai de <code>python pipeline.py rodar</code> no PC.</td></tr>
+        <tr><td><code>contagens.csv</code></td><td><span class="chip bad">não gerado</span></td><td>Mesmo motivo. É gerado na mesma rodada.</td></tr>
+        <tr><td><code>novidades.csv</code></td><td><span class="chip bad">não gerado</span></td><td>Precisa de duas publicações processadas e não houve acesso a nenhuma.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Números principais</h2>
+    <div class="facts">
+      <div class="fact"><b>0</b><span>empresas reais processadas (fonte bloqueada)</span></div>
+      <div class="fact"><b>42</b><span>prefixos de CNAE na lista-alvo, em 12 grupos</span></div>
+      <div class="fact"><b>6</b><span>componentes na nota: 30 + 25 + 20 + 10 + 10 + 5 = 100</span></div>
+      <div class="fact"><b>~10 GB</b><span>de disco livre no pico (um zip + um CSV)</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fonte oficial</h2>
+    <p>O endereço é <code>https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/</code>, com pastas mensais <code>AAAA-MM/</code>. Ele foi confirmado só pelo índice do buscador. <b>A data da última publicação não foi verificada.</b> A cópia do índice no buscador mostrava a pasta <code>2026-01/</code> (de 11/01/2026), mas essa cópia é antiga. O pipeline descobre sozinho a pasta mais recente quando roda.</p>
+    <p>Não há espelho confiável e atual alcançável daqui. O bucket público da Base dos Dados (<code>storage.googleapis.com/basedosdados-public</code>) só tem o dicionário do CNPJ, de 18/07/2024. A tabela completa está no BigQuery, que exige login e projeto de cobrança.</p>
+    <p>A base de regime tributário (lucro real por ano) está no código como opção <code>--regime</code>. O endereço e o layout dela <b>não foram verificados</b>; se falhar, o pipeline segue sem ela.</p>
+  </section>
+
+  <section>
+    <h2>Como funciona o filtro e a nota</h2>
+    <ul>
+      <li>Matriz ativa, fora do Simples e do MEI, capital de R$ 100 mil ou mais, natureza jurídica empresarial (órgão público, estatal, fundo, cooperativa e empresário individual ficam fora).</li>
+      <li>Vínculo estrangeiro: PJ estrangeira direta ou filial de sociedade estrangeira (30 pontos), PJ estrangeira via holding brasileira (24), estrangeiro de tipo não identificado (18), PF sócia (12), PF só administradora (8).</li>
+      <li>CNAE principal na lista-alvo: software e SaaS, logística internacional, trading e atacado importador, publicidade, consultoria e royalties, serviços exportados, educação e conteúdo, e-commerce e turismo. Vale 25 × peso.</li>
+      <li>Ficam fora bancos, corretoras, IPs e concorrentes: CNAE principal ou secundário nas divisões 64 a 66, ou nome com câmbio, pagamentos, pay, exchange, fintech, cripto etc.</li>
+      <li>Capital em escala logarítmica (até 20 pontos), porte ou lucro real (até 10), idade com pico entre 1 e 3 anos (até 10) e filiais ativas (até 5).</li>
+      <li>Domínio do e-mail cadastral marcado como “provável contador” quando é genérico (Gmail, Hotmail…) ou aparece em 20 ou mais empresas ativas.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Para rodar no PC</h2>
+<pre>pip install duckdb requests
+python pipeline.py rodar                  # mês mais recente → saida/AAAA-MM/top1000.csv
+python pipeline.py rodar --regime         # tenta incluir lucro real
+python pipeline.py diff --anterior saida/2026-09 --atual saida/2026-10   # → novidades.csv</pre>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Bloqueado nesta sessão</b> (HTTP 403 no proxy de saída): <code>arquivos.receitafederal.gov.br</code>, <code>dadosabertos.rfb.gov.br</code>, <code>www.gov.br</code>, <code>dados.gov.br</code>.</li>
+      <li>Não verificado: a data da publicação mais recente, o endereço e o layout da base de regime tributário, a troca de codificação de 2026 (relatada por terceiros; o código detecta sozinho) e o calendário de publicação.</li>
+      <li>O teste usa dados inventados para exercitar a lógica. Nenhum número desta página vem da base real.</li>
+      <li>Sócio estrangeiro é indício de remessa, não prova. Capital e porte são declarados e muitas vezes antigos. O controle indireto só sobe um nível.</li>
+      <li>Privacidade: o nome de sócio PF nunca é gravado (nem nos arquivos intermediários) e do e-mail só o domínio é guardado. O teste confere isso.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Os arquivos deste artifact são <code>pipeline.py</code>, <code>METODO.md</code>, <code>cnae_alvo.csv</code> e <code>test_pipeline.py</code>.</footer>
+</main>
