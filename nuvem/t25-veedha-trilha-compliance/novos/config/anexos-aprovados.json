@@ -1,0 +1,10 @@
+{
+  "_leia": [
+    "Anexos que o portao aceita sem o texto extraido, pelo sha256 do arquivo (regra R55, tarefa 25 da nuvem).",
+    "Padrao VAZIO: anexo sem texto extraido e sem hash aqui sai BLOQUEADO. Cada entrada so vale com aprovadoPor da lista",
+    "fechada de aprovadores do config/modelos.json e aprovadoEm (AAAA-MM-DD, ja passada). Mesmo aprovado, com anexo nunca sai LIVRE.",
+    "Formato: { \"sha256\": \"<64 hex do arquivo>\", \"nome\": \"convite.pdf\", \"aprovadoPor\": \"<aprovador>\", \"aprovadoEm\": \"AAAA-MM-DD\" }",
+    "Para tirar o hash: node -e \"console.log(require('crypto').createHash('sha256').update(require('fs').readFileSync(process.argv[1])).digest('hex'))\" arquivo.pdf"
+  ],
+  "aprovados": []
+}

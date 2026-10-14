@@ -1,0 +1,923 @@
+diff --git a/config/anexos-aprovados.json b/config/anexos-aprovados.json
+new file mode 100644
+index 0000000..00ea786
+--- /dev/null
++++ b/config/anexos-aprovados.json
+@@ -0,0 +1,10 @@
++{
++  "_leia": [
++    "Anexos que o portao aceita sem o texto extraido, pelo sha256 do arquivo (regra R55, tarefa 25 da nuvem).",
++    "Padrao VAZIO: anexo sem texto extraido e sem hash aqui sai BLOQUEADO. Cada entrada so vale com aprovadoPor da lista",
++    "fechada de aprovadores do config/modelos.json e aprovadoEm (AAAA-MM-DD, ja passada). Mesmo aprovado, com anexo nunca sai LIVRE.",
++    "Formato: { \"sha256\": \"<64 hex do arquivo>\", \"nome\": \"convite.pdf\", \"aprovadoPor\": \"<aprovador>\", \"aprovadoEm\": \"AAAA-MM-DD\" }",
++    "Para tirar o hash: node -e \"console.log(require('crypto').createHash('sha256').update(require('fs').readFileSync(process.argv[1])).digest('hex'))\" arquivo.pdf"
++  ],
++  "aprovados": []
++}
+diff --git a/lib/portao.js b/lib/portao.js
+index 8aea29e..d7771eb 100644
+--- a/lib/portao.js
++++ b/lib/portao.js
+@@ -146,6 +146,13 @@
+  *   camposDoModelo (se vier, tem de bater com o que o texto tem). IGNORADOS: rodapeTexto
+  *   (o rodapé vem do config) e avisosArt78 (os avisos são procurados no texto).
+  *
++ *   anexos               lista (opcional) de { nome, texto?, sha256? } — o que vai junto da
++ *                        mensagem como arquivo (tarefa 25 da nuvem, V02; regra R55). O portão não
++ *                        lê arquivo: anexo sem `texto` extraído e sem `sha256` na lista de anexos
++ *                        aprovados (config/anexos-aprovados.json, vazia por padrão) é BLOQUEADO.
++ *                        Com `texto`, o texto passa pelos mesmos detectores do corpo. Com anexo,
++ *                        nunca LIVRE e sem dispensa de rodapé. Lista vazia ou ausente: nada muda.
++ *
+  * SAÍDA
+  *   { veredito: 'BLOQUEADO'|'REVISAR'|'LIVRE',
+  *     passou: veredito !== 'BLOQUEADO'   (compatibilidade; NÃO quer dizer aprovado),
+@@ -254,6 +261,7 @@ const TIPOS_DE_CAMPO = Object.freeze({
+ const PASTA_CONFIG = path.join(__dirname, '..', 'config');
+ const ARQUIVO_RODAPE = path.join(PASTA_CONFIG, 'rodape.json');
+ const ARQUIVO_MODELOS = path.join(PASTA_CONFIG, 'modelos.json');
++const ARQUIVO_ANEXOS = path.join(PASTA_CONFIG, 'anexos-aprovados.json');
+ 
+ /**
+  * As regras da nota "O que o robo nunca pode fazer" (vault da Veedha, 08-Regulatorio)
+@@ -305,6 +313,9 @@ const REGRAS = {
+   R49: { resumo: 'texto de hotlist do MAPA: nunca LIVRE; sem atribuir a lista a XP, bloqueia', ids: ['res178-art25-III'] },
+   R50: { resumo: 'excecao dentro do portao vira BLOQUEADO, nunca propagada', ids: ['erro-interno'] },
+   R51: { resumo: 'o modulo exportado e congelado em profundidade: ninguem troca verificar em tempo de execucao', ids: [] },
++  // 14/10/2026 (tarefa 25 da nuvem, V02): o portao julgava so a string; o print da carteira ou o PDF da posicao saiam
++  // como arquivo, com um "segue em anexo" que passa. Falha fechada: anexo que o portao nao leu nao sai.
++  R55: { resumo: 'mensagem com anexo: anexo sem conteudo julgado (sem texto extraido e sem sha256 na lista de anexos aprovados do config) bloqueia, nunca REVISAR; o texto extraido passa pelos detectores do corpo; com anexo nunca LIVRE e sem dispensa de rodape', ids: ['res178-art25-VII'] },
+ };
+ 
+ // ---------------------------------------------------------------------------
+@@ -2011,6 +2022,38 @@ function carregarModelos() {
+   return { todos, aprovados: todos.filter((x) => x.valido && x.aprovado), regex, cobertos, aprovadores, motivo: '' };
+ }
+ 
++/**
++ * ANEXOS APROVADOS (14/10/2026, tarefa 25 da nuvem, V02). O portão não lê arquivo: um anexo só
++ * conta como julgado se vier com o texto extraído (que passa pelos detectores do corpo) ou se o
++ * sha256 dele estiver nesta lista, aprovado um a um por quem está na lista fechada de aprovadores
++ * do config/modelos.json, com data. Padrão VAZIO; arquivo ausente, ilegível ou entrada malformada
++ * não aprova nada (falha fechada).
++ *   { "aprovados": [ { "sha256": "<64 hex>", "nome": "convite.pdf", "aprovadoPor": "...", "aprovadoEm": "AAAA-MM-DD" } ] }
++ */
++function carregarAnexosAprovados(aprovadores) {
++  const vazio = (motivo) => ({ lista: [], motivo });
++  let j;
++  try {
++    j = lerJson(ARQUIVO_ANEXOS);
++  } catch (e) {
++    return vazio(e && e.code === 'ENOENT' ? 'config/anexos-aprovados.json ausente (nenhum anexo aprovado)' : 'config/anexos-aprovados.json ilegivel (nenhum anexo aprovado)');
++  }
++  if (!j || typeof j !== 'object' || !Array.isArray(j.aprovados)) return vazio('config/anexos-aprovados.json sem a lista "aprovados"');
++  const lista = [];
++  const vistos = new Set();
++  for (const a of j.aprovados) {
++    if (!a || typeof a !== 'object' || Array.isArray(a)) continue;
++    const h = typeof a.sha256 === 'string' ? a.sha256.trim().toLowerCase() : '';
++    if (!/^[0-9a-f]{64}$/.test(h) || vistos.has(h)) continue;
++    const quem = typeof a.aprovadoPor === 'string' ? a.aprovadoPor.trim() : '';
++    if (!nomeDeAprovador(quem) || !aprovadores.includes(quem)) continue;
++    if (!dataDeAprovacao(a.aprovadoEm)) continue;
++    vistos.add(h);
++    lista.push({ sha256: h, nome: typeof a.nome === 'string' ? a.nome.trim().slice(0, 120) : '', aprovadoPor: quem, aprovadoEm: String(a.aprovadoEm) });
++  }
++  return { lista, motivo: '' };
++}
++
+ function congelar(o) {
+   if (o && (typeof o === 'object' || typeof o === 'function') && !Object.isFrozen(o)) {
+     Object.freeze(o);
+@@ -2031,6 +2074,9 @@ const REGEX_DOS_MODELOS = _MODELOS.regex; // interno: não é exportado
+ const REVISAO_COBERTA = _MODELOS.cobertos; // interno: o que a aprovação de cada modelo cobre
+ const APROVADORES = congelar(_MODELOS.aprovadores.slice());
+ const MOTIVO_MODELOS = _MODELOS.motivo;
++const _ANEXOS = carregarAnexosAprovados(_MODELOS.aprovadores);
++const ANEXOS_APROVADOS = congelar(_ANEXOS.lista);
++const ANEXO_APROVADO_POR_HASH = new Map(_ANEXOS.lista.map((a) => [a.sha256, a])); // interno: não é exportado
+ 
+ /** O corpo com o rodapé oficial, do jeito que o portão procura. Sem rodapé carregado, só o corpo (e o portão barra). */
+ function comRodape(corpo) {
+@@ -2159,7 +2205,7 @@ const CAMPOS_DO_CONTEXTO = [
+   'validadeSuitabilityMeses', 'repasseIntegro', 'declaracoesArt21', 'declaracoesArt22', 'researchEstrangeiro',
+   'textoFonte', 'trechoCitado', 'fonteDeNumeros', 'urlMaterialTecnico', 'produtoTemFgc', 'disclosureRemuneracao',
+   'remuneracaoDescrita', 'ofertaPublicaEmCurso', 'dentroDoPeriodoDeSilencio', 'avisosArt12', 'avisosArt78',
+-  'bloquearAgendaDeVencimento', 'modeloId', 'camposDoModelo',
++  'bloquearAgendaDeVencimento', 'modeloId', 'camposDoModelo', 'anexos',
+ ];
+ const CAMPOS_DO_DESTINATARIO = [
+   'temOptIn', 'temOptOut', 'suitabilityPerfil', 'suitabilityData', 'suitabilityValidoAte', 'termoCienciaAssinado',
+@@ -2196,6 +2242,10 @@ function lerContexto(contexto) {
+     for (const k of Object.keys(c.camposDoModelo)) cm[k] = c.camposDoModelo[k];
+     c.camposDoModelo = cm;
+   }
++  // Anexos (V02): cada campo de cada anexo lido UMA vez, como o resto do contexto.
++  if (Array.isArray(c.anexos)) {
++    c.anexos = Array.from(c.anexos, (a) => (a && typeof a === 'object' && !Array.isArray(a) ? { nome: a.nome, texto: a.texto, sha256: a.sha256 } : a));
++  }
+   return c;
+ }
+ 
+@@ -2413,6 +2463,27 @@ function verificarDentro(texto, contexto) {
+     bloquear('R35', 'contexto-incompleto', `trechoCitado acima do limite de ${LIMITE_TEXTO} caracteres`);
+     return fechar();
+   }
++  // Anexos (tarefa 25 da nuvem, V02): lista malformada e decidir no escuro.
++  const anexos = [];
++  if (c.anexos !== undefined && c.anexos !== null) {
++    if (!Array.isArray(c.anexos)) {
++      bloquear('R35', 'contexto-incompleto', 'anexos do contexto nao e lista');
++      return fechar();
++    }
++    for (let i = 0; i < c.anexos.length; i++) {
++      const a = c.anexos[i];
++      const malformado = (o) => {
++        bloquear('R35', 'contexto-incompleto', `anexos[${i}] ${o}`);
++        return fechar();
++      };
++      if (!a || typeof a !== 'object' || Array.isArray(a)) return malformado('nao e objeto { nome, texto?, sha256? }');
++      if (typeof a.nome !== 'string' || !a.nome.trim()) return malformado('sem nome');
++      if (a.texto !== undefined && a.texto !== null && typeof a.texto !== 'string') return malformado('com texto que nao e texto');
++      if (typeof a.texto === 'string' && a.texto.length > LIMITE_FONTE) return malformado(`com texto de ${a.texto.length} caracteres, acima do limite de ${LIMITE_FONTE}`);
++      if (a.sha256 !== undefined && a.sha256 !== null && typeof a.sha256 !== 'string') return malformado('com sha256 que nao e texto');
++      anexos.push({ nome: a.nome.trim().slice(0, 120), texto: typeof a.texto === 'string' ? a.texto : '', sha256: typeof a.sha256 === 'string' ? a.sha256.trim().toLowerCase() : '' });
++    }
++  }
+ 
+   if (!ORIGENS.includes(c.origemDoConteudo)) {
+     bloquear('R35', 'contexto-incompleto', `origemDoConteudo desconhecida: "${c.origemDoConteudo}". Valores aceitos: ${ORIGENS.join(', ')}`);
+@@ -2541,9 +2612,47 @@ function verificarDentro(texto, contexto) {
+   };
+   detectarNasVisoes(v, info, saida);
+ 
++  // --- 6b. Anexos (tarefa 25 da nuvem, V02; R55) ---------------------------------
++  // O portão julga texto, não arquivo. Anexo só passa se o conteúdo dele foi julgado: com o texto
++  // extraído, que passa pelos MESMOS detectores do corpo (um extrato no anexo barra como no corpo),
++  // ou com o sha256 na lista de anexos aprovados do config. Sem isso, BLOQUEADO, nunca REVISAR:
++  // REVISAR é "o dono olha o texto", e o texto não mostra o que vai dentro do arquivo. O número
++  // sem lastro (R33) e a citação (R34) continuam só no corpo: no anexo, valor de posição e taxa já
++  // barram pelos detectores (R14, R25, R26).
++  const visoesDosAnexos = [];
++  for (const a of anexos) {
++    const rotulo = `anexo "${a.nome}"`;
++    const doAnexo = {
++      bloquear: (regra, id, motivo, trecho) => bloquear(regra, id, `${rotulo}: ${motivo}`, trecho),
++      avisar: (regra, id, motivo, trecho) => avisar(regra, id, `${rotulo}: ${motivo}`, trecho),
++      pedirRevisao: (regra, motivo, trecho, origem) => pedirRevisao(regra, `${rotulo}: ${motivo}`, trecho, origem),
++    };
++    if (a.texto.trim()) {
++      for (const s of sinaisDeOfuscacao(a.texto)) {
++        if (s.grave) doAnexo.bloquear('R48', 'texto-ofuscado', `texto ofuscado: ${s.tipo}`, s.trecho);
++        else doAnexo.pedirRevisao('R48', MOTIVO_SINAL_LEVE(s.tipo), s.trecho);
++      }
++      const va = visoes(a.texto);
++      if (va.juntou) doAnexo.pedirRevisao('R48', MOTIVO_JUNTOU, '');
++      detectarNasVisoes(va, info, doAnexo);
++      visoesDosAnexos.push(va);
++      doAnexo.pedirRevisao('R55', 'o portao julgou o texto extraido pelo chamador, nao o arquivo: confira que e o texto do arquivo que sai; mensagem com anexo nunca sai LIVRE', '');
++    } else if (a.sha256 && ANEXO_APROVADO_POR_HASH.has(a.sha256)) {
++      const ap = ANEXO_APROVADO_POR_HASH.get(a.sha256);
++      doAnexo.pedirRevisao('R55', `arquivo aprovado pelo sha256 (${a.sha256.slice(0, 12)}..., aprovado em ${ap.aprovadoEm}, config/anexos-aprovados.json); mensagem com anexo nunca sai LIVRE`, '');
++    } else {
++      doAnexo.bloquear(
++        'R55',
++        'res178-art25-VII',
++        (a.sha256 ? 'o portao nao leu o anexo e o sha256 dele nao esta na lista de anexos aprovados (config/anexos-aprovados.json)' : 'o portao nao leu o anexo: veio sem o texto extraido e sem sha256 aprovado') +
++          '. Anexo e o caminho por onde extrato e posicao do cliente sairiam sem ninguem ver (art. 25, VII); envie o texto extraido para julgar, ou peca a aprovacao do arquivo pelo hash'
++      );
++    }
++  }
++
+   // --- 7. Suitability ----------------------------------------------------------
+   const semFgc = (t) => t.replace(/fundo garantidor[a-z ]*/g, ' ');
+-  const produtoNoTexto = v.todas.some((t) => PRODUTO.test(semFgc(t)));
++  const produtoNoTexto = v.todas.concat(...visoesDosAnexos.map((va) => va.todas)).some((t) => PRODUTO.test(semFgc(t)));
+   const citaProduto = c.citaProduto === true || produtoNoTexto;
+   if (produtoNoTexto && c.citaProduto !== true) {
+     avisar('R19', 'contexto-incompleto', 'o contexto declarou citaProduto=false, mas o texto nomeia produto; o detector venceu (falha fechada)');
+@@ -2780,11 +2889,12 @@ module.exports = congelar({
+   MODELOS,
+   MODELOS_APROVADOS,
+   APROVADORES,
++  ANEXOS_APROVADOS,
+   PEDIDOS_PERMITIDOS,
+   PERGUNTAS_DA_LEITURA,
+   primeiraPalavraDoCadastro,
+   modoTeste,
+-  CONFIG: { rodape: 'config/rodape.json', modelos: 'config/modelos.json' },
++  CONFIG: { rodape: 'config/rodape.json', modelos: 'config/modelos.json', anexos: 'config/anexos-aprovados.json' },
+ });
+ 
+ // ---------------------------------------------------------------------------
+@@ -2802,6 +2912,7 @@ if (require.main === module) {
+     console.log(`  ${String(m.id).padEnd(30)} ${estado}`);
+     if (m.corpoSha256) console.log(`  ${''.padEnd(30)} corpoSha256: ${m.corpoSha256}`);
+   }
++  console.log(`\nanexos aprovados pelo sha256 (config/anexos-aprovados.json): ${ANEXOS_APROVADOS.length ? ANEXOS_APROVADOS.length : `NENHUM${_ANEXOS.motivo ? ` - ${_ANEXOS.motivo}` : ''}`}; anexo sem texto extraido e sem hash aprovado sai BLOQUEADO (R55)`);
+   console.log('\no que um modelo pode pedir ao cliente (lista fechada):');
+   for (const p of PEDIDOS_PERMITIDOS) console.log(`  - ${p.pedido}`);
+   console.log('\nleitura de sentido que a aprovacao grava junto ("leituraDeSentido", cada uma "nao"):');
+diff --git a/lib/registro.js b/lib/registro.js
+new file mode 100644
+index 0000000..7af7a41
+--- /dev/null
++++ b/lib/registro.js
+@@ -0,0 +1,383 @@
++/**
++ * REGISTRO DE SAÍDA — o que foi dito a cada cliente, guardado 5 anos. (tarefa 25 da nuvem, V01, 14/10/2026)
++ *
++ * POR QUE ISTO EXISTE
++ * -------------------
++ * O assessor tem de poder mostrar, anos depois, o que foi dito a cada cliente: a comunicação
++ * com cliente é registro obrigatório, com guarda de 5 anos. O `estado.enviados` (lib/limites.js)
++ * mede o silêncio de 72h: é histórico de DISPARO, não de CONTEÚDO. Este módulo guarda o
++ * conteúdo: destino, canal, texto integral, veredito do portão, regras, quem aprovou e quando,
++ * a hora da mensagem, a hora do servidor e o id da fila.
++ *
++ * AS GARANTIAS (o contrato de testes-pendentes/v01-log-de-saida.teste.js, mais a cadeia)
++ *   1. Só acréscimo. Registro gravado não se reescreve: o mesmo id duas vezes lança "ja
++ *      registrado". Não existe função de apagar, remover, limpar ou truncar.
++ *   2. RETENCAO_ANOS = 5. `podeExpurgar(reg, agora)` só responde; quem expurga é gente, e
++ *      nunca registro mais novo que isso.
++ *   3. FORA DO ONEDRIVE. Pasta sincronizada (OneDrive, Dropbox, Google Drive, iCloud), inclusive
++ *      por link ou junction, lança erro. O padrão é <VEEDHA_DADOS ou ~/veedha-dados>/registro-de-saida,
++ *      a mesma pasta de dados que o conferir.js usa.
++ *   4. FALHA FECHADA. Se não gravou (disco, pasta sincronizada, campo faltando, arquivo corrompido,
++ *      cadeia quebrada), `registrar` lança, e a mensagem NÃO SAI: o registro é pré-condição do
++ *      envio, não efeito dele (a fila chama antes de entregar ao canal; ver para-o-fila.md).
++ *   5. CADEIA DE HASH. Cada linha leva o hash da anterior (`hashAnterior`) e o próprio (`hash` =
++ *      sha256 da linha sem ele). Um arquivo por ano (registro-AAAA.jsonl, pelo ano UTC da hora do
++ *      servidor); a cadeia atravessa a virada do ano. Linha mexida, apagada ou fora de ordem
++ *      quebra a cadeia, e o `verificar` aponta a primeira.
++ *
++ * LINHA DE COMANDO
++ *   node lib/registro.js verificar [--raiz PASTA]
++ *       confere a cadeia inteira; sai 0 (íntegra) ou 1 (aponta arquivo:linha da 1ª adulterada)
++ *   node lib/registro.js consultar --destino X --de AAAA-MM-DD --ate AAAA-MM-DD [--raiz PASTA]
++ *       o que foi enviado a X no período (pela hora da mensagem, `em`), um JSON por linha
++ *
++ * DADO PESSOAL: este arquivo guarda dado de cliente por desenho. Por isso a pasta é fora da
++ * sincronização, com permissão só do dono (pasta 700, arquivo 600).
++ */
++
++'use strict';
++
++const fs = require('fs');
++const os = require('os');
++const path = require('path');
++const crypto = require('crypto');
++
++const RETENCAO_ANOS = 5;
++const VEREDITOS_QUE_SAEM = Object.freeze(['LIVRE', 'REVISAR']);
++const HASH_INICIAL = '0'.repeat(64);
++const ARQUIVO_DO_ANO = /^registro-(\d{4})\.jsonl$/;
++const SINCRONIZADA = /onedrive|dropbox|google ?drive|icloud/i;
++const TRAVA_ESPERA_MS = 10000;
++const TRAVA_VELHA_MS = 30000;
++const LIMITE_TEXTO = 20000; // o mesmo teto do portão: o que passou por lá cabe aqui
++
++const modoTeste = () => process.env.VEEDHA_MODO_TESTE === '1';
++const sha256 = (s) => crypto.createHash('sha256').update(String(s), 'utf8').digest('hex');
++
++/** A pasta padrão: a de dados da Veedha (a mesma do conferir.js), fora do OneDrive. */
++function pastaPadrao() {
++  return path.join(process.env.VEEDHA_DADOS || path.join(os.homedir(), 'veedha-dados'), 'registro-de-saida');
++}
++
++/** O caminho real, resolvendo link e junction até a parte que existe (como o conferir.js). */
++function caminhoReal(caminho) {
++  const resolvido = path.resolve(caminho);
++  let atual = resolvido;
++  const resto = [];
++  for (;;) {
++    try {
++      const real = fs.realpathSync.native(atual);
++      return resto.length ? path.join(real, ...resto.reverse()) : real;
++    } catch (e) {
++      const pai = path.dirname(atual);
++      if (pai === atual) return resolvido;
++      resto.push(path.basename(atual));
++      atual = pai;
++    }
++  }
++}
++
++function pastaDoRegistro(opcoes) {
++  const raiz = path.resolve((opcoes && opcoes.raiz) || pastaPadrao());
++  const real = caminhoReal(raiz);
++  if (SINCRONIZADA.test(raiz) || SINCRONIZADA.test(real)) {
++    throw new Error(
++      `registro de saida dentro de pasta sincronizada (OneDrive ou parecida): ${real}${real !== raiz ? ` (via ${raiz})` : ''}. ` +
++        'Dado de cliente mora fora da sincronizacao; a mensagem nao sai.'
++    );
++  }
++  return raiz;
++}
++
++// ---------------------------------------------------------------------------
++// A linha e a cadeia
++// ---------------------------------------------------------------------------
++
++const ORDEM = ['seq', 'id', 'destino', 'canal', 'texto', 'veredito', 'regras', 'aprovadoPor', 'aprovadoEm', 'em', 'registradoEm', 'anexos', 'hashAnterior'];
++
++/** A linha sem o hash, sempre na mesma ordem de chaves: é o que o hash cobre. */
++function corpoDaLinha(r) {
++  const o = {};
++  for (const k of ORDEM) o[k] = r[k] === undefined ? null : r[k];
++  return JSON.stringify(o);
++}
++
++const textoObrigatorio = (v) => typeof v === 'string' && v.trim().length > 0;
++const dataValida = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) && !Number.isNaN(Date.parse(v));
++
++/** Confere a saída e monta o registro (sem seq, cadeia e hora do servidor). Lança se faltar algo. */
++function montarRegistro(saida) {
++  if (!saida || typeof saida !== 'object' || Array.isArray(saida)) throw new Error('saida ausente ou malformada');
++  const falta = ['id', 'destino', 'canal', 'texto'].filter((k) => !textoObrigatorio(saida[k]));
++  if (falta.length) throw new Error(`saida sem ${falta.join(', ')}`);
++  if (saida.id.length > 200) throw new Error('id da fila com mais de 200 caracteres');
++  if (saida.texto.length > LIMITE_TEXTO) throw new Error(`texto com mais de ${LIMITE_TEXTO} caracteres`);
++  if (!VEREDITOS_QUE_SAEM.includes(saida.veredito)) {
++    throw new Error(`veredito "${saida.veredito}" nao sai: so ${VEREDITOS_QUE_SAEM.join(' ou ')} (o que o portao barrou nao e enviado)`);
++  }
++  const aprovadoPor = textoObrigatorio(saida.aprovadoPor) ? saida.aprovadoPor.trim() : null;
++  const aprovadoEm = saida.aprovadoEm === undefined || saida.aprovadoEm === null || saida.aprovadoEm === '' ? null : saida.aprovadoEm;
++  if (aprovadoEm !== null && !dataValida(aprovadoEm)) throw new Error('aprovadoEm nao e data valida');
++  if (saida.veredito === 'REVISAR' && (!aprovadoPor || !aprovadoEm)) {
++    throw new Error('veredito REVISAR sem aprovadoPor e aprovadoEm: texto livre so sai com aprovacao humana registrada');
++  }
++  if (saida.em !== undefined && saida.em !== null && !dataValida(saida.em)) throw new Error('em nao e data valida');
++  const regras = saida.regras === undefined || saida.regras === null ? [] : saida.regras;
++  if (!Array.isArray(regras) || regras.some((x) => typeof x !== 'string')) throw new Error('regras tem de ser lista de texto (R-xx)');
++  let anexos = [];
++  if (saida.anexos !== undefined && saida.anexos !== null) {
++    if (!Array.isArray(saida.anexos)) throw new Error('anexos tem de ser lista');
++    anexos = saida.anexos.map((a, i) => {
++      if (!a || typeof a !== 'object' || !textoObrigatorio(a.nome)) throw new Error(`anexos[${i}] sem nome`);
++      return { nome: a.nome.trim(), sha256: typeof a.sha256 === 'string' ? a.sha256.trim().toLowerCase() : null };
++    });
++  }
++  return {
++    id: saida.id,
++    destino: saida.destino,
++    canal: saida.canal,
++    texto: saida.texto,
++    veredito: saida.veredito,
++    regras: [...regras],
++    aprovadoPor,
++    aprovadoEm,
++    em: saida.em || null,
++    anexos,
++  };
++}
++
++/** Lê todos os arquivos do ano, em ordem, conferindo a cadeia. Nunca lança por conteúdo: devolve o problema. */
++function lerCadeia(raiz) {
++  let nomes;
++  try {
++    nomes = fs.readdirSync(raiz);
++  } catch (e) {
++    if (e && e.code === 'ENOENT') return { registros: [], arquivos: [], problema: null };
++    throw e;
++  }
++  const arquivos = nomes.filter((n) => ARQUIVO_DO_ANO.test(n)).sort();
++  const registros = [];
++  let anterior = HASH_INICIAL;
++  for (const nome of arquivos) {
++    const linhas = fs.readFileSync(path.join(raiz, nome), 'utf8').split('\n');
++    if (linhas[linhas.length - 1] === '') linhas.pop();
++    for (let i = 0; i < linhas.length; i++) {
++      const onde = { arquivo: nome, linha: i + 1 };
++      let r;
++      try {
++        r = JSON.parse(linhas[i]);
++      } catch (e) {
++        return { registros, arquivos, problema: { ...onde, motivo: 'linha que nao e JSON (corrompida ou cortada)' } };
++      }
++      if (!r || typeof r !== 'object') return { registros, arquivos, problema: { ...onde, motivo: 'linha que nao e registro' } };
++      if (r.seq !== registros.length + 1) return { registros, arquivos, problema: { ...onde, motivo: `seq ${r.seq}, esperado ${registros.length + 1} (linha apagada, repetida ou fora de ordem)` } };
++      if (r.hashAnterior !== anterior) return { registros, arquivos, problema: { ...onde, motivo: 'hashAnterior nao bate com o hash da linha anterior (linha apagada ou trocada antes desta)' } };
++      if (r.hash !== sha256(corpoDaLinha(r))) return { registros, arquivos, problema: { ...onde, motivo: 'hash nao bate com o conteudo (esta linha foi alterada)' } };
++      registros.push(r);
++      anterior = r.hash;
++    }
++  }
++  return { registros, arquivos, problema: null };
++}
++
++const descrever = (p) => `${p.arquivo}:${p.linha}: ${p.motivo}`;
++
++// ---------------------------------------------------------------------------
++// A trava entre processos (dois robôs gravando ao mesmo tempo quebrariam a cadeia)
++// ---------------------------------------------------------------------------
++
++function dormir(ms) {
++  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
++}
++
++function comTrava(raiz, fn) {
++  const trava = path.join(raiz, '.trava');
++  const inicio = Date.now();
++  for (;;) {
++    try {
++      fs.mkdirSync(trava);
++      break;
++    } catch (e) {
++      if (!e || e.code !== 'EEXIST') throw e;
++      let idade = 0;
++      try {
++        idade = Date.now() - fs.statSync(trava).mtimeMs;
++      } catch (_) {
++        continue; // soltou entre o mkdir e o stat: tenta de novo
++      }
++      if (idade > TRAVA_VELHA_MS) {
++        fs.rmSync(trava, { recursive: true, force: true }); // trava de processo que morreu no meio
++        continue;
++      }
++      if (Date.now() - inicio > TRAVA_ESPERA_MS) throw new Error(`registro ocupado por outro processo ha mais de ${TRAVA_ESPERA_MS / 1000} s`);
++      dormir(50);
++    }
++  }
++  try {
++    return fn();
++  } finally {
++    fs.rmSync(trava, { recursive: true, force: true });
++  }
++}
++
++// ---------------------------------------------------------------------------
++// A API
++// ---------------------------------------------------------------------------
++
++/**
++ * Grava UMA mensagem que vai sair. Lança se não gravou: quem chama não envia.
++ * @param {object} saida   { id, destino, canal, texto, veredito, regras?, aprovadoPor?, aprovadoEm?, em?, anexos? }
++ * @param {object} opcoes  { raiz? } (e `agora`, só em modo teste, para a virada do ano)
++ * @returns {object} o registro gravado, com seq e hash
++ */
++function registrar(saida, opcoes = {}) {
++  const raiz = pastaDoRegistro(opcoes);
++  const base = montarRegistro(saida);
++  const agora = modoTeste() && opcoes.agora ? new Date(opcoes.agora) : new Date();
++  if (Number.isNaN(agora.getTime())) throw new Error('agora invalido');
++  fs.mkdirSync(raiz, { recursive: true, mode: 0o700 });
++  return comTrava(raiz, () => {
++    const { registros, arquivos, problema } = lerCadeia(raiz);
++    if (problema) throw new Error(`registro de saida com a cadeia quebrada em ${descrever(problema)}; nada sai ate alguem conferir (node lib/registro.js verificar)`);
++    if (registros.some((r) => r.id === base.id)) throw new Error(`id "${base.id}" ja registrado (duplicado): registro de saida nao se reescreve`);
++    const ultimo = registros[registros.length - 1] || null;
++    const registradoEm = agora.toISOString();
++    // Relógio que voltou não volta o arquivo: a linha vai para o ano mais novo já aberto, e a cadeia segue em ordem.
++    const anoUltimo = arquivos.length ? Number(arquivos[arquivos.length - 1].match(ARQUIVO_DO_ANO)[1]) : 0;
++    const ano = Math.max(agora.getUTCFullYear(), anoUltimo);
++    const registro = Object.assign({ seq: registros.length + 1 }, base, {
++      em: base.em || registradoEm,
++      registradoEm,
++      hashAnterior: ultimo ? ultimo.hash : HASH_INICIAL,
++    });
++    registro.hash = sha256(corpoDaLinha(registro));
++    const arquivo = path.join(raiz, `registro-${ano}.jsonl`);
++    const fd = fs.openSync(arquivo, 'a', 0o600);
++    try {
++      fs.writeSync(fd, JSON.stringify(registro) + '\n');
++      fs.fsyncSync(fd);
++    } finally {
++      fs.closeSync(fd);
++    }
++    return JSON.parse(JSON.stringify(registro));
++  });
++}
++
++/** Todos os registros, em ordem. Lança se a cadeia estiver quebrada: histórico adulterado não se lê calado. */
++function ler(opcoes = {}) {
++  const raiz = path.resolve((opcoes && opcoes.raiz) || pastaPadrao());
++  const { registros, problema } = lerCadeia(raiz);
++  if (problema) throw new Error(`registro de saida com a cadeia quebrada em ${descrever(problema)} (node lib/registro.js verificar)`);
++  return registros;
++}
++
++/** A cadeia inteira confere? { ok, total, arquivos, problema } */
++function verificarCadeia(opcoes = {}) {
++  const raiz = path.resolve((opcoes && opcoes.raiz) || pastaPadrao());
++  const { registros, arquivos, problema } = lerCadeia(raiz);
++  return { ok: !problema, total: registros.length, arquivos, problema, raiz };
++}
++
++/** O que foi enviado a um destino num período (datas AAAA-MM-DD, inclusivas, pela hora da mensagem). */
++function consultar({ destino, de, ate, raiz } = {}) {
++  const dia = (v, nome) => {
++    if (v === undefined || v === null || v === '') return null;
++    if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(v))) throw new Error(`${nome} nao e data AAAA-MM-DD`);
++    return v;
++  };
++  const d0 = dia(de, '--de');
++  const d1 = dia(ate, '--ate');
++  return ler({ raiz }).filter((r) => {
++    if (destino && r.destino !== destino) return false;
++    const d = String(r.em || r.registradoEm).slice(0, 10);
++    return (!d0 || d >= d0) && (!d1 || d <= d1);
++  });
++}
++
++/**
++ * Já passou do prazo de guarda? Só responde; não apaga nada. Data ilegível = não (não dá para provar a idade).
++ * @param {{em?: string, registradoEm?: string}} reg
++ * @param {string|Date} [agora]
++ */
++function podeExpurgar(reg, agora) {
++  const quando = Date.parse((reg && (reg.registradoEm || reg.em)) || '');
++  const hoje = agora === undefined ? Date.now() : new Date(agora).getTime();
++  if (Number.isNaN(quando) || Number.isNaN(hoje)) return false;
++  const limite = new Date(quando);
++  limite.setUTCFullYear(limite.getUTCFullYear() + RETENCAO_ANOS);
++  return hoje >= limite.getTime();
++}
++
++/**
++ * Para a fila: registra a saída a partir do item e do julgamento do portão, ou lança com
++ * code SEM_REGISTRO. Portão que não liberou também lança: não se registra o que não sai.
++ * @param {object} item        { id, destino, canal, texto, aprovadoPor?, aprovadoEm?, em?, anexos? }
++ * @param {object} julgamento  o resultado de portao.verificar(texto, contexto)
++ */
++function registrarSaida(item, julgamento, opcoes = {}) {
++  const semRegistro = (motivo) => Object.assign(new Error(`registro de saida nao gravado (${motivo}): a mensagem NAO sai`), { code: 'SEM_REGISTRO' });
++  if (!julgamento || typeof julgamento !== 'object' || julgamento.passou !== true || !VEREDITOS_QUE_SAEM.includes(julgamento.veredito)) {
++    throw semRegistro(`o portao nao liberou esta mensagem (veredito ${julgamento && julgamento.veredito})`);
++  }
++  const it = item && typeof item === 'object' ? item : {};
++  const achados = [].concat(julgamento.revisar || [], julgamento.avisos || []);
++  const regras = [...new Set(achados.map((x) => x && x.regra).filter((x) => typeof x === 'string'))].sort();
++  try {
++    return registrar(
++      {
++        id: it.id,
++        destino: it.destino,
++        canal: it.canal,
++        texto: it.texto,
++        veredito: julgamento.veredito,
++        regras,
++        aprovadoPor: it.aprovadoPor,
++        aprovadoEm: it.aprovadoEm,
++        em: it.em,
++        anexos: it.anexos,
++      },
++      opcoes
++    );
++  } catch (e) {
++    throw semRegistro(e && e.message);
++  }
++}
++
++module.exports = Object.freeze({ registrar, ler, consultar, verificarCadeia, podeExpurgar, registrarSaida, pastaPadrao, RETENCAO_ANOS });
++
++// ---------------------------------------------------------------------------
++// Linha de comando
++// ---------------------------------------------------------------------------
++
++if (require.main === module) {
++  const args = process.argv.slice(2);
++  const opcao = (nome) => {
++    const i = args.indexOf(nome);
++    return i >= 0 ? args[i + 1] : undefined;
++  };
++  const raiz = opcao('--raiz');
++  try {
++    if (args[0] === 'verificar') {
++      const v = verificarCadeia({ raiz });
++      if (v.ok) {
++        console.log(v.total ? `registro integro: ${v.total} registro(s) em ${v.arquivos.join(', ')} (${v.raiz})` : `nenhum registro ainda em ${v.raiz}`);
++        process.exit(0);
++      }
++      console.log(`ADULTERADO a partir de ${descrever(v.problema)} (${v.raiz}); ${v.total} registro(s) integro(s) antes dele`);
++      process.exit(1);
++    } else if (args[0] === 'consultar') {
++      const achados = consultar({ destino: opcao('--destino'), de: opcao('--de'), ate: opcao('--ate'), raiz });
++      for (const r of achados) console.log(JSON.stringify(r));
++      console.error(`${achados.length} registro(s)`);
++      process.exit(0);
++    } else {
++      console.log('uso: node lib/registro.js verificar [--raiz PASTA]');
++      console.log('     node lib/registro.js consultar --destino X --de AAAA-MM-DD --ate AAAA-MM-DD [--raiz PASTA]');
++      console.log(`pasta padrao: ${pastaPadrao()} · guarda: ${RETENCAO_ANOS} anos`);
++      process.exit(args.length ? 2 : 0);
++    }
++  } catch (e) {
++    console.error(`erro: ${e.message}`);
++    process.exit(1);
++  }
++}
+diff --git a/testes/anexo-extra.teste.js b/testes/anexo-extra.teste.js
+new file mode 100644
+index 0000000..b86faf7
+--- /dev/null
++++ b/testes/anexo-extra.teste.js
+@@ -0,0 +1,111 @@
++/**
++ * ANEXO NO PORTÃO, além do contrato do V02 (tarefa 25 da nuvem, 14/10/2026; regra R55).
++ *
++ *   node --test testes/anexo-extra.teste.js
++ *
++ * O contrato mínimo mora em testes/v02-anexo.teste.js (escrito pela conversa dona). Aqui vai o que a
++ * tarefa 25 pôs por cima: a lista de anexos aprovados pelo sha256 (vazia por padrão), anexo malformado,
++ * texto extraído vazio, produto no anexo acionando o suitability, a dispensa de rodapé que não vale com
++ * anexo, ofuscação dentro do anexo e o motivo que diz QUAL anexo barrou. Texto sintético.
++ */
++'use strict';
++
++process.env.VEEDHA_MODO_TESTE = '1';
++const test = require('node:test');
++const assert = require('node:assert/strict');
++const fs = require('fs');
++const path = require('path');
++const crypto = require('crypto');
++
++const RAIZ = path.resolve(__dirname, '..');
++const { montarMotor, PRESETS } = require(path.join(RAIZ, 'redteam', 'executor.js'));
++const { RODAPE_DE_TESTE } = require(path.join(RAIZ, 'testes', 'portao.teste.js'));
++
++const P = montarMotor().portao;
++const comRodape = (t) => `${t}\n\n${RODAPE_DE_TESTE}`;
++const TEXTO = 'Bom dia Cliente! Tudo bem? Segue em anexo o material que a gente conversou. Qualquer coisa me chama.';
++const HASH = crypto.createHash('sha256').update('convite sintetico').digest('hex');
++const r55 = (r) => r.bloqueios.filter((b) => b.regra === 'R55');
++
++/** Uma cópia do motor com uma lista de anexos aprovados escrita antes de carregar o portão. */
++function motorComAnexos(aprovados) {
++  const { raiz } = montarMotor();
++  const cfg = JSON.parse(fs.readFileSync(path.join(raiz, 'config', 'modelos.json'), 'utf8'));
++  const lista = aprovados(cfg.aprovadores[0]);
++  fs.writeFileSync(path.join(raiz, 'config', 'anexos-aprovados.json'), JSON.stringify({ aprovados: lista }));
++  for (const k of Object.keys(require.cache)) if (k.startsWith(raiz)) delete require.cache[k];
++  return require(path.join(raiz, 'lib', 'portao.js'));
++}
++
++test('A01 sha256 fora da lista de anexos aprovados (vazia por padrao): BLOQUEADO R55', () => {
++  const r = P.verificar(comRodape(TEXTO), { ...PRESETS.cliente(), anexos: [{ nome: 'convite.pdf', sha256: HASH }] });
++  assert.equal(r.veredito, 'BLOQUEADO');
++  assert.ok(r55(r).length && /lista de anexos aprovados/.test(r55(r)[0].motivo), JSON.stringify(r.bloqueios));
++  assert.deepEqual(P.ANEXOS_APROVADOS, []);
++});
++
++test('A02 sha256 aprovado por quem esta na lista fechada: julgado, mas sai no maximo REVISAR', () => {
++  const Q = motorComAnexos((quem) => [{ sha256: HASH, nome: 'convite.pdf', aprovadoPor: quem, aprovadoEm: '2026-09-01' }]);
++  const r = Q.verificar(comRodape(TEXTO), { ...PRESETS.cliente(), anexos: [{ nome: 'convite.pdf', sha256: HASH.toUpperCase() }] });
++  assert.equal(r.veredito, 'REVISAR', JSON.stringify(r.bloqueios));
++  assert.ok(r.revisar.some((x) => x.regra === 'R55' && /aprovado pelo sha256/.test(x.motivo)));
++  // aprovador fora da lista, data no futuro ou hash malformado nao aprovam nada
++  const R = motorComAnexos(() => [
++    { sha256: HASH, aprovadoPor: 'Alguem Fora Da Lista', aprovadoEm: '2026-09-01' },
++    { sha256: 'abc', aprovadoPor: 'x', aprovadoEm: '2026-09-01' },
++  ]);
++  assert.deepEqual(R.ANEXOS_APROVADOS, []);
++  assert.equal(R.verificar(comRodape(TEXTO), { ...PRESETS.cliente(), anexos: [{ nome: 'convite.pdf', sha256: HASH }] }).veredito, 'BLOQUEADO');
++});
++
++test('A03 lista de anexos malformada e decidir no escuro: BLOQUEADO R35', () => {
++  for (const anexos of ['extrato.pdf', [null], [{}], [{ nome: '   ' }], [{ nome: 'a.pdf', texto: 5 }], [{ nome: 'a.pdf', sha256: 7 }], [{ nome: 'a.pdf', texto: 'x'.repeat(400001) }]]) {
++    const r = P.verificar(comRodape(TEXTO), { ...PRESETS.cliente(), anexos });
++    assert.equal(r.veredito, 'BLOQUEADO', JSON.stringify(anexos).slice(0, 60));
++    assert.ok(r.bloqueios.some((b) => b.regra === 'R35' && /anexos/.test(b.motivo)), JSON.stringify(r.bloqueios).slice(0, 200));
++  }
++});
++
++test('A04 texto extraido vazio (PDF escaneado, imagem) conta como nao lido: BLOQUEADO R55', () => {
++  const r = P.verificar(comRodape(TEXTO), { ...PRESETS.cliente(), anexos: [{ nome: 'print.png', texto: ' \n ' }] });
++  assert.equal(r.veredito, 'BLOQUEADO');
++  assert.equal(r55(r).length, 1);
++});
++
++test('A05 produto dentro do anexo aciona o suitability como no corpo', () => {
++  const lamina = [{ nome: 'lamina.pdf', texto: 'Conheca o CDB do banco parceiro, com liquidez diaria.' }];
++  const prospect = P.verificar(comRodape(TEXTO), { ...PRESETS.prospect(), anexos: lamina });
++  assert.equal(prospect.veredito, 'BLOQUEADO');
++  assert.ok(prospect.bloqueios.some((b) => b.regra === 'R15'), JSON.stringify(prospect.bloqueios).slice(0, 300));
++  const vencido = P.verificar(comRodape(TEXTO), { ...PRESETS.vencido(), anexos: lamina });
++  assert.ok(vencido.bloqueios.some((b) => b.regra === 'R16'));
++});
++
++test('A06 com anexo nao ha dispensa de rodape: anexo e material (config real, rodape oficial ainda vazio)', () => {
++  const real = montarMotor({ real: true }).portao;
++  const conversa = 'Bom dia Cliente! Tudo bem? Consegue falar amanha as 10h?';
++  const sem = real.verificar(conversa, { ...PRESETS.cliente() });
++  if (real.DISPENSA_CONVERSA_PURA.ligado) assert.equal(sem.veredito, 'REVISAR', 'sem anexo, a conversa pura continua dispensada');
++  const com = real.verificar(conversa, { ...PRESETS.cliente(), anexos: [{ nome: 'convite.pdf', texto: 'Convite para uma conversa no escritorio.' }] });
++  assert.equal(com.veredito, 'BLOQUEADO');
++  assert.ok(com.bloqueios.some((b) => b.regra === 'R08'), 'o rodape volta a ser exigido');
++});
++
++test('A07 ofuscacao dentro do anexo barra como no corpo, e o motivo diz qual anexo', () => {
++  const r = P.verificar(comRodape(TEXTO), {
++    ...PRESETS.cliente(),
++    anexos: [
++      { nome: 'convite.pdf', texto: 'Convite para uma conversa no escritorio.' },
++      { nome: 'resumo.pdf', texto: 'Sua cus​todia: R$ 900.000,00 aplicados.' },
++    ],
++  });
++  assert.equal(r.veredito, 'BLOQUEADO');
++  assert.ok(r.bloqueios.every((b) => /anexo "resumo\.pdf"/.test(b.motivo)), JSON.stringify(r.bloqueios.map((b) => b.motivo.slice(0, 60))));
++  assert.ok(!r.bloqueios.some((b) => /convite\.pdf/.test(b.motivo)), 'o anexo inofensivo nao barra');
++});
++
++test('A08 o portao exportado segue congelado e anuncia o arquivo novo do config', () => {
++  assert.ok(Object.isFrozen(P.ANEXOS_APROVADOS));
++  assert.equal(P.CONFIG.anexos, 'config/anexos-aprovados.json');
++  assert.ok(P.REGRAS.R55 && P.REGRAS.R55.ids.includes('res178-art25-VII'));
++});
+diff --git a/testes/registro.teste.js b/testes/registro.teste.js
+new file mode 100644
+index 0000000..89c0002
+--- /dev/null
++++ b/testes/registro.teste.js
+@@ -0,0 +1,191 @@
++/**
++ * REGISTRO DE SAÍDA, além do contrato do V01 (tarefa 25 da nuvem, 14/10/2026).
++ *
++ *   node --test testes/registro.teste.js
++ *
++ * O contrato mínimo mora em testes/v01-log-de-saida.teste.js (escrito pela conversa dona). Aqui vai o
++ * que a tarefa 25 pôs por cima: a cadeia de hash, a virada do ano, o `verificar` que aponta a primeira
++ * linha adulterada, o `consultar`, a falha fechada por link para o OneDrive, por arquivo corrompido e
++ * por veredito que não sai, a trava entre processos e a função que a fila chama. Tudo em pasta
++ * temporária, com texto sintético e telefone do bloco de teste (5511900000xxx).
++ */
++'use strict';
++
++process.env.VEEDHA_MODO_TESTE = '1';
++const test = require('node:test');
++const assert = require('node:assert/strict');
++const fs = require('fs');
++const os = require('os');
++const path = require('path');
++const { spawn, spawnSync } = require('child_process');
++
++const RAIZ = path.resolve(__dirname, '..');
++const MODULO = path.join(RAIZ, 'lib', 'registro.js');
++const R = () => require(MODULO);
++const pasta = () => fs.mkdtempSync(path.join(os.tmpdir(), 'veedha-registro-'));
++const saida = (n, extra = {}) => ({
++  id: `fila-${String(n).padStart(4, '0')}`,
++  destino: `55119000000${String(n % 100).padStart(2, '0')}`,
++  canal: 'whatsapp_pessoal',
++  texto: `Bom dia Cliente! Tudo bem? Mensagem sintetica numero ${n}.`,
++  veredito: 'REVISAR',
++  regras: ['R38'],
++  aprovadoPor: 'Aprovador de Teste',
++  aprovadoEm: '2026-10-14T12:00:00.000Z',
++  em: '2026-10-14T13:00:00.000Z',
++  ...extra,
++});
++const linhas = (arq) => fs.readFileSync(arq, 'utf8').split('\n').filter(Boolean);
++
++test('X01 cada linha leva o hash da anterior e o verificar confere a cadeia inteira', () => {
++  const raiz = pasta();
++  const a = R().registrar(saida(1), { raiz });
++  const b = R().registrar(saida(2), { raiz });
++  const c = R().registrar(saida(3), { raiz });
++  assert.deepEqual([a.seq, b.seq, c.seq], [1, 2, 3]);
++  assert.equal(a.hashAnterior, '0'.repeat(64));
++  assert.equal(b.hashAnterior, a.hash);
++  assert.equal(c.hashAnterior, b.hash);
++  assert.deepEqual(R().ler({ raiz }).map((r) => r.id), ['fila-0001', 'fila-0002', 'fila-0003']);
++  const v = R().verificarCadeia({ raiz });
++  assert.equal(v.ok, true);
++  assert.equal(v.total, 3);
++  assert.ok(R().ler({ raiz }).every((r) => typeof r.registradoEm === 'string' && r.registradoEm.length >= 20), 'hora do servidor em todo registro');
++});
++
++test('X02 um arquivo por ano, e a cadeia atravessa a virada', () => {
++  const raiz = pasta();
++  const a = R().registrar(saida(1), { raiz, agora: '2026-12-31T23:59:00.000Z' });
++  const b = R().registrar(saida(2), { raiz, agora: '2027-01-01T00:01:00.000Z' });
++  assert.deepEqual(fs.readdirSync(raiz).filter((n) => n.endsWith('.jsonl')).sort(), ['registro-2026.jsonl', 'registro-2027.jsonl']);
++  assert.equal(b.hashAnterior, a.hash);
++  assert.equal(R().verificarCadeia({ raiz }).ok, true);
++  // relógio que volta não abre o arquivo do ano velho: a linha vai para o mais novo, e a cadeia segue
++  const c = R().registrar(saida(3), { raiz, agora: '2026-06-01T10:00:00.000Z' });
++  assert.equal(linhas(path.join(raiz, 'registro-2027.jsonl')).length, 2);
++  assert.equal(c.hashAnterior, b.hash);
++  assert.equal(R().verificarCadeia({ raiz }).ok, true);
++});
++
++test('X03 linha alterada: o verificar aponta arquivo e linha, sai 1, e nada mais se grava nem se le calado', () => {
++  const raiz = pasta();
++  for (const n of [1, 2, 3]) R().registrar(saida(n), { raiz, agora: '2026-10-14T13:00:00.000Z' });
++  const arq = path.join(raiz, 'registro-2026.jsonl');
++  const ls = linhas(arq);
++  const mexida = JSON.parse(ls[1]);
++  mexida.texto = 'texto trocado depois do envio';
++  ls[1] = JSON.stringify(mexida);
++  fs.writeFileSync(arq, ls.join('\n') + '\n');
++  const v = R().verificarCadeia({ raiz });
++  assert.equal(v.ok, false);
++  assert.deepEqual([v.problema.arquivo, v.problema.linha], ['registro-2026.jsonl', 2]);
++  assert.match(v.problema.motivo, /alterada/);
++  const cli = spawnSync(process.execPath, [MODULO, 'verificar', '--raiz', raiz], { encoding: 'utf8' });
++  assert.equal(cli.status, 1);
++  assert.match(cli.stdout, /registro-2026\.jsonl:2/);
++  assert.throws(() => R().registrar(saida(4), { raiz }), /cadeia quebrada/);
++  assert.throws(() => R().ler({ raiz }), /cadeia quebrada/);
++});
++
++test('X04 linha apagada no meio tambem quebra a cadeia, na linha seguinte ao buraco', () => {
++  const raiz = pasta();
++  for (const n of [1, 2, 3]) R().registrar(saida(n), { raiz, agora: '2026-10-14T13:00:00.000Z' });
++  const arq = path.join(raiz, 'registro-2026.jsonl');
++  const ls = linhas(arq);
++  fs.writeFileSync(arq, [ls[0], ls[2]].join('\n') + '\n');
++  const v = R().verificarCadeia({ raiz });
++  assert.equal(v.ok, false);
++  assert.equal(v.problema.linha, 2);
++});
++
++test('X05 arquivo corrompido (linha cortada): falha fechada, a proxima mensagem nao se grava', () => {
++  const raiz = pasta();
++  R().registrar(saida(1), { raiz, agora: '2026-10-14T13:00:00.000Z' });
++  fs.appendFileSync(path.join(raiz, 'registro-2026.jsonl'), '{"seq":2,"id":"fila-00');
++  assert.throws(() => R().registrar(saida(2), { raiz, agora: '2026-10-14T13:00:00.000Z' }), /cadeia quebrada|nao e JSON/);
++});
++
++test('X06 consultar: o que foi enviado a um destino num periodo (e pela linha de comando)', () => {
++  const raiz = pasta();
++  R().registrar(saida(1, { destino: '5511900000001', em: '2026-03-02T10:00:00.000Z' }), { raiz });
++  R().registrar(saida(2, { destino: '5511900000001', em: '2026-03-20T10:00:00.000Z' }), { raiz });
++  R().registrar(saida(3, { destino: '5511900000002', em: '2026-03-21T10:00:00.000Z' }), { raiz });
++  R().registrar(saida(4, { destino: '5511900000001', em: '2026-04-01T10:00:00.000Z' }), { raiz });
++  const marco = R().consultar({ raiz, destino: '5511900000001', de: '2026-03-01', ate: '2026-03-31' });
++  assert.deepEqual(marco.map((r) => r.id), ['fila-0001', 'fila-0002']);
++  assert.throws(() => R().consultar({ raiz, de: '01/03/2026' }), /AAAA-MM-DD/);
++  const cli = spawnSync(process.execPath, [MODULO, 'consultar', '--destino', '5511900000001', '--de', '2026-03-01', '--ate', '2026-03-31', '--raiz', raiz], { encoding: 'utf8' });
++  assert.equal(cli.status, 0, cli.stderr);
++  assert.equal(cli.stdout.trim().split('\n').length, 2);
++  assert.equal(JSON.parse(cli.stdout.trim().split('\n')[0]).texto, saida(1).texto);
++});
++
++test('X07 pasta sincronizada por link ou junction tambem recusa (e Dropbox, Google Drive, iCloud)', () => {
++  const base = pasta();
++  const sincronizada = path.join(base, 'OneDrive - Pessoal', 'dados');
++  fs.mkdirSync(sincronizada, { recursive: true });
++  const link = path.join(base, 'dados-de-cliente');
++  fs.symlinkSync(sincronizada, link, 'junction');
++  assert.throws(() => R().registrar(saida(1), { raiz: path.join(link, 'registro') }), /sincronizad/i);
++  for (const nome of ['Dropbox', 'Google Drive', 'iCloudDrive']) {
++    assert.throws(() => R().registrar(saida(1), { raiz: path.join(base, nome, 'registro') }), /sincronizad/i, nome);
++  }
++  assert.equal(fs.existsSync(path.join(sincronizada, 'registro')), false, 'nada pode ser criado dentro da pasta sincronizada');
++});
++
++test('X08 so sai o que o portao deixou sair: BLOQUEADO, REVISAR sem aprovacao e campo faltando recusam, sem gravar nada', () => {
++  const raiz = pasta();
++  assert.throws(() => R().registrar(saida(1, { veredito: 'BLOQUEADO' }), { raiz }), /nao sai/);
++  assert.throws(() => R().registrar(saida(2, { aprovadoPor: null }), { raiz }), /aprovacao humana/);
++  assert.throws(() => R().registrar(saida(3, { aprovadoEm: 'ontem' }), { raiz }), /aprovadoEm/);
++  assert.throws(() => R().registrar(saida(4, { texto: '  ' }), { raiz }), /sem texto/);
++  assert.throws(() => R().registrar(saida(5, { destino: undefined }), { raiz }), /sem destino/);
++  assert.deepEqual(R().ler({ raiz }), []);
++  const livre = R().registrar(saida(6, { veredito: 'LIVRE', aprovadoPor: null, aprovadoEm: null }), { raiz });
++  assert.equal(livre.seq, 1, 'LIVRE (instancia de modelo aprovado) nao pede aprovacao por mensagem');
++});
++
++test('X09 a API nao tem como apagar nada, e o modulo e congelado', () => {
++  const m = R();
++  assert.ok(Object.isFrozen(m));
++  const proibidas = Object.keys(m).filter((k) => /apagar|remover|limpar|truncar|delet|excluir|reescrever/i.test(k));
++  assert.deepEqual(proibidas, []);
++  assert.equal(m.RETENCAO_ANOS, 5);
++  assert.equal(m.podeExpurgar({ em: '2021-10-14T00:00:00.000Z' }, '2026-10-13T23:59:59.000Z'), false, 'um segundo antes dos 5 anos');
++  assert.equal(m.podeExpurgar({ em: '2021-10-14T00:00:00.000Z' }, '2026-10-14T00:00:00.000Z'), true);
++  assert.equal(m.podeExpurgar({ em: 'data ruim' }, '2040-01-01T00:00:00.000Z'), false, 'sem data legivel nao se prova a idade');
++});
++
++test('X10 registrarSaida (o que a fila chama): junta as regras do julgamento e falha com code SEM_REGISTRO', () => {
++  const raiz = pasta();
++  const julgamento = { veredito: 'REVISAR', passou: true, bloqueios: [], revisar: [{ regra: 'R38' }, { regra: 'R37' }], avisos: [{ regra: 'R05' }] };
++  const item = { id: 'fila-0001', destino: '5511900000001', canal: 'email', texto: 'Ola Cliente, tudo bem?', aprovadoPor: 'Aprovador de Teste', aprovadoEm: '2026-10-14T12:00:00.000Z' };
++  const reg = R().registrarSaida(item, julgamento, { raiz });
++  assert.deepEqual(reg.regras, ['R05', 'R37', 'R38']);
++  assert.equal(reg.veredito, 'REVISAR');
++  for (const ruim of [{ veredito: 'BLOQUEADO', passou: false }, null, { veredito: 'LIVRE', passou: false }]) {
++    assert.throws(() => R().registrarSaida({ ...item, id: 'x' + Math.random() }, ruim, { raiz }), (e) => e.code === 'SEM_REGISTRO');
++  }
++  assert.throws(() => R().registrarSaida(item, julgamento, { raiz }), (e) => e.code === 'SEM_REGISTRO' && /ja registrado/.test(e.message));
++});
++
++test('X11 o arquivo nasce so com permissao do dono (600) e a pasta 700', { skip: process.platform === 'win32' }, () => {
++  const raiz = path.join(pasta(), 'nova');
++  R().registrar(saida(1), { raiz, agora: '2026-10-14T13:00:00.000Z' });
++  assert.equal(fs.statSync(path.join(raiz, 'registro-2026.jsonl')).mode & 0o777, 0o600);
++  assert.equal(fs.statSync(raiz).mode & 0o777, 0o700);
++});
++
++test('X12 quatro processos gravando juntos: 40 registros, nenhum perdido, cadeia inteira', async () => {
++  const raiz = pasta();
++  const filho = (k) =>
++    new Promise((ok, falhou) => {
++      const codigo = `const R=require(${JSON.stringify(MODULO)});for(let i=0;i<10;i++)R.registrar({id:'p${k}-'+i,destino:'5511900000001',canal:'email',texto:'sintetico '+i,veredito:'LIVRE'},{raiz:${JSON.stringify(raiz)}});`;
++      const p = spawn(process.execPath, ['-e', codigo], { stdio: 'inherit' });
++      p.on('exit', (c) => (c === 0 ? ok() : falhou(new Error(`processo ${k} saiu com ${c}`))));
++    });
++  await Promise.all([0, 1, 2, 3].map(filho));
++  const v = R().verificarCadeia({ raiz });
++  assert.equal(v.ok, true, v.problema && v.problema.motivo);
++  assert.equal(v.total, 40);
++});

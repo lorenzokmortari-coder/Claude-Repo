@@ -1,0 +1,12 @@
+diff --git a/08-Regulatorio/O que o robo nunca pode fazer.md b/08-Regulatorio/O que o robo nunca pode fazer.md
+index 3970397..e716fee 100644
+--- a/08-Regulatorio/O que o robo nunca pode fazer.md	
++++ b/08-Regulatorio/O que o robo nunca pode fazer.md	
+@@ -235,6 +235,7 @@ Linguagem de quem opera. **Onde no código** traz arquivo · função ou detecto
+ | R48 | manda texto ofuscado: caractere invisível dentro de palavra, emoji dentro de palavra, **qualquer letra fora do alfabeto latino** (regra positiva desde a rodada 4: lisu e cherokee passavam pela tabela), palavra que mistura alfabetos, marca de direção de texto, dígito fora do 0-9 (BLOQUEADO); letra de largura total, letra latina que não é do português e letras ou dígitos separados por espaço ou separador vão a REVISAR, já juntados antes da leitura | falha fechada · rodada 2 (A07, A08, A09, F4, F4b) · rodada 3 (MM02, T11, T15, MF06) | `portao.js` `verificar()` §4 + `citacao.js` `sinaisDeOfuscacao()` e `limparCaracteres()`, id `texto-ofuscado` | BLOQUEADO / REVISAR |
+ | R50 | deixa uma exceção dentro do portão sair crua para quem chamou (getter que lança, Proxy, texto que estoura a pilha) | falha fechada · rodada 2 (F6d, F7) | `portao.js` `verificar()` envolve tudo em `try` e devolve `resultadoDeExcecao()`, id `erro-interno`; `lerContexto()` lê cada campo uma vez | BLOQUEADO |
+ | R51 | aceita que alguém troque o portão em tempo de execução (`portao.verificar = ...`) | falha fechada · rodada 2 (F8) | `portao.js` `congelar()` sobre o objeto exportado inteiro (tabelas, rodapé, modelos, funções) | recusa (TypeError em modo estrito) |
++| R55 | manda anexo que o portão não leu: arquivo (print, PDF, planilha, com ou sem extensão) sem o texto extraído e sem o `sha256` na lista de anexos aprovados (`config/anexos-aprovados.json`, vazia por padrão) sai **BLOQUEADO**, nunca REVISAR, porque o texto da mensagem não mostra o que vai dentro do arquivo; com o texto extraído, o anexo passa pelos mesmos detectores do corpo (extrato no anexo barra como no corpo); com anexo nunca LIVRE e sem dispensa de rodapé | Res. CVM 178 art. 25, VII (`res178-art25-VII`) · tarefa 25 da nuvem (V02, 14/10/2026) | `portao.js` `verificar()` §6b (`anexos` no contexto) + `carregarAnexosAprovados()` | BLOQUEADO (sem conteúdo julgado) · REVISAR (com conteúdo julgado) |
+ 
+ ### Fora do portão: conferir, redigir, fila e voz
+ 
