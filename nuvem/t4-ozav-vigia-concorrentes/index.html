@@ -1,0 +1,137 @@
+<title>Nuvem · Ozav · vigia de concorrentes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), tabela de entregáveis no topo, detalhes abaixo */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fact { border-top: 2px solid var(--accent); padding-top: 8px; display: grid; gap: 2px; }
+.fact b { font: 600 22px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { color: var(--muted); font-size: 13px; }
+.sub { color: var(--muted); font-size: 13px; }
+.nowrap { font-size: 13px; }
+.neutral { background: var(--code-bg); color: var(--muted); }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 4 de 4 · 14/10/2026</div>
+    <h1>Vigia de concorrentes</h1>
+    <p class="lead">Quem vende câmbio e pagamento internacional para empresas no Brasil, o que cada um diz que faz e quais páginas vale vigiar. Inclui também como usar o cadastro diário do Banco Central para ver quem entrou e quem saiu.</p>
+    <div class="chips">
+      <span class="chip ok">concorrentes.csv · 44 empresas</span>
+      <span class="chip ok">cadastro_bc.md</span>
+      <span class="chip ok">vigia_bc.py · 2 testes passaram</span>
+      <span class="chip bad">exemplo real do BC não rodou</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Números principais</h2>
+    <div class="facts">
+      <div class="fact"><b>14</b><span>concorrentes diretos (câmbio ou pagamento internacional para PJ brasileira)</span></div>
+      <div class="fact"><b>13</b><span>adjacentes: infraestrutura, stablecoin B2B ou foco em quem vende ao Brasil</span></div>
+      <div class="fact"><b>30</b><span>empresas com ao menos uma página a vigiar confirmada pela busca</span></div>
+      <div class="fact"><b>10</b><span>linhas a verificar (bancos grandes e plataformas sem resultado)</span></div>
+    </div>
+    <p class="lead">Páginas confirmadas: produto em 29, blog em 26, vagas em 14, preço em 10 e status em 5 empresas. Muitas páginas de blog e vagas são um post ou uma vaga individual, porque a página-índice não apareceu na busca; a coluna <code>observacoes</code> diz quando é o caso.</p>
+  </section>
+
+  <section>
+    <h2>Concorrentes diretos</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Empresa</th><th>O que diz que faz</th><th>Páginas a vigiar</th></tr></thead>
+      <tbody><tr><td><b>Banco Rendimento</b><div class="sub">banco</div></td><td>Câmbio para empresas: pagamentos em moeda estrangeira de importações e recebimento das vendas ao exterior já convertidos em reais, sem IOF nessas operações <a href="https://www.rendimento.com.br/para-sua-empresa/cambio/transferencias-internacionais/importacao-e-exportacao/" class="sub">fonte</a></td><td class="nowrap"><a href="https://www.rendimento.com.br/para-sua-empresa/cambio/transferencias-internacionais/importacao-e-exportacao/">produto</a> · <a href="https://www.rendimento.com.br/wp-content/uploads/2024/01/tabelatarifas-revisada-16-01-2024-tarifaspessoajuridica.pdf">preço</a> · <a href="https://www.rendimento.com.br/blog/cambio-para-pj-como-funciona/">blog</a></td></tr><tr><td><b>Banco Topázio</b><div class="sub">banco</div></td><td>Câmbio para empresas, com câmbio pronto e produtos para facilitadoras, remessadoras, corretoras e fintechs, como automação de remessas, importações e exportações <a href="https://www.bancotopazio.com.br/para-sua-empresa/cambio/sobre-cambio" class="sub">fonte</a></td><td class="nowrap"><a href="https://www.bancotopazio.com.br/para-sua-empresa/cambio/sobre-cambio">produto</a> · <a href="https://www.bancotopazio.com.br/regulamento-produtos-tarifas">preço</a></td></tr><tr><td><b>C6 Empresas</b><div class="sub">banco</div></td><td>C6 Conta Global Empresas: conta internacional para PJ que paga despesas e transfere dólares e euros para instituições e titulares no exterior, com câmbio 24 horas e abertura 100% digital no app <a href="https://www.c6bank.com.br/blog/c6-bank-lanca-conta-internacional-em-dolar-para-clientes-pj" class="sub">fonte</a></td><td class="nowrap"><a href="https://www.c6bank.com.br/conta-pj-internacional">produto</a> · <a href="https://www.c6bank.com.br/blog/pagamentos-internacionais">blog</a></td></tr><tr><td><b>Inter Empresas</b><div class="sub">banco</div></td><td>Global Account Business: conta em dólar para empresas pagarem e receberem do exterior sem sair do Brasil, com transferência entre a conta global e a Conta PJ Inter; a Conta PJ Internacional recebe do exterior e faz transferências internacionais e câmbio <a href="https://blog.inter.co/global-account-business" class="sub">fonte</a></td><td class="nowrap"><a href="https://blog.inter.co/global-account-business">produto</a> · <a href="https://blog.inter.co/conta-pj-internacional/">blog</a></td></tr><tr><td><b>Ourinvest (hoje Ouribank)</b><div class="sub">banco</div></td><td>Banco com foco em câmbio para empresas de importação e exportação, com fechamento de câmbio, financiamento (FINIMP, ACC/ACE, antecipação de recebíveis de exportação) e hedge cambial <a href="https://ouribank.com/en/solutions/for-companies" class="sub">fonte</a></td><td class="nowrap"><a href="https://ouribank.com/en/solutions/for-companies">produto</a> · <a href="https://www.ouribank.com/conteudo/blog">blog</a></td></tr><tr><td><b>Braza Bank</b><div class="sub">banco de câmbio</div></td><td>Banco de câmbio com soluções sob medida para empresas, com câmbio de importação e exportação, hedge, pagamentos em lote por plataforma digital e checkout para vender a brasileiros com meios de pagamento nacionais <a href="https://www.brazabank.com.br" class="sub">fonte</a></td><td class="nowrap"><a href="https://www.brazabank.com.br/servicos-de-apis/">produto</a> · <a href="https://www.brazabank.com.br/conteudo/2026-planejamento-financeiro-empresas/">blog</a></td></tr><tr><td><b>Ebury Bank (ex-Bexs Banco de Câmbio)</b><div class="sub">banco de câmbio</div></td><td>Banco de câmbio e cross-border especializado em câmbio e gestão de risco cambial para PMEs do comércio exterior, com mais de 130 moedas, remessas via API e proteção contra variação cambial; não oferece conta corrente tradicional <a href="https://br.ebury.com/en/fx-for-international-trade-imports-and-exports" class="sub">fonte</a></td><td class="nowrap"><a href="https://br.ebury.com/conta-internacional-pj">produto</a> · <a href="https://br.ebury.com/blog/cambio-simbolico-3-impactos-da-nova-resolucao-do-bcb">blog</a></td></tr><tr><td><b>Travelex Bank (Banco Travelex)</b><div class="sub">banco de câmbio</div></td><td>Primeiro banco especializado em câmbio no Brasil, com soluções para empresas que fazem negócios com o exterior: importação e exportação, transferências internacionais, eFX, conta corrente em moeda estrangeira, cartão corporativo multimoeda e proteção cambial (NDF) <a href="https://www.travelexbank.com.br/solucoes-corporativas/" class="sub">fonte</a></td><td class="nowrap"><a href="https://www.travelexbank.com.br/solucoes-corporativas/">produto</a> · <a href="https://www.travelexbank.com.br/blog/pagamentos-corporativos-internacionais-desafios-e-solucoes/">blog</a></td></tr><tr><td><b>Treviso Corretora de Câmbio (hoje Intex Bank Banco de Câmbio)</b><div class="sub">banco de câmbio</div></td><td>Banco de câmbio com câmbio comercial e financeiro para empresas (pagamentos de importação e exportação, empréstimos e investimentos), contas em moeda estrangeira, remessas digitais, hedge e registros declaratórios <a href="https://intexbank.com.br/" class="sub">fonte</a></td><td class="nowrap"><a href="https://intexbank.com.br/empresa/cambio-comercial/">produto</a> · <a href="https://www.bcb.gov.br/fis/tarifas/htms/02992317.asp?frame=1">preço</a> · <a href="https://intexbank.com.br/blog/remessas-digitais-como-enviar-dinheiro/">blog</a> · <a href="https://trevisocambio.com.br/trabalhe-conosco/">vagas</a></td></tr><tr><td><b>Conta Simples</b><div class="sub">conta global</div></td><td>Conta Simples Global: conta em dólar para empresas brasileiras com CNPJ (ou LLC nos EUA) para enviar e receber USD por ACH, Fedwire e SWIFT, com cartões virtuais sem IOF e conversão de reais no app <a href="https://contasimples.com/conta-global" class="sub">fonte</a></td><td class="nowrap"><a href="https://contasimples.com/conta-global">produto</a> · <a href="https://contasimples.com/tarifa">preço</a> · <a href="https://simplifica.contasimples.com/melhor-cartao-de-credito-para-cnpj/">blog</a></td></tr><tr><td><b>Wise Business (Wise Brasil)</b><div class="sub">conta global</div></td><td>Conta PJ multimoeda para microempresas no Brasil, com 40 moedas, dados bancários para receber em mais de 18 moedas e cartão de débito Visa internacional. <a href="https://wise.com/gb/blog/wise-business-brazil" class="sub">fonte</a></td><td class="nowrap"><a href="https://wise.com/help/articles/2977969/fees-for-using-wise-buisness">preço</a> · <a href="https://www.wise.com/gb/blog/category/business-product-news">blog</a> · <a href="https://wise.jobs">vagas</a> · <a href="https://status.wise.com">status</a></td></tr><tr><td><b>B&amp;T Câmbio</b><div class="sub">corretora de câmbio</div></td><td>Corretora de câmbio fundada em 1993 que faz transferências internacionais, pagamentos de importação e exportação, compra de moeda e consultoria tributária e de comércio exterior para pessoas e empresas <a href="https://btcambio.com.br/quem-somos/" class="sub">fonte</a></td><td class="nowrap"><a href="https://btcambio.com.br/transferencias/importacao-e-exportacao/">produto</a> · <a href="https://blog.btcambio.com.br/30-anos-de-bt-cambio-uma-trajetoria-de-sucesso/">blog</a></td></tr><tr><td><b>Remessa Online (Remessa Online for Business)</b><div class="sub">fintech de câmbio</div></td><td>Plataforma de transferências internacionais que, para empresas, faz câmbio de importação e exportação, pagamento a fornecedores no exterior, recebimento de exportações e de serviços prestados ao exterior <a href="https://www.remessaonline.com.br/blog/remessa-online-comercio-exterior/" class="sub">fonte</a></td><td class="nowrap"><a href="https://ajuda.remessaonline.com.br/como-receber-remessa-online-for-business">produto</a> · <a href="https://www.remessaonline.com.br/blog/custo-de-transferencia-internacional/">blog</a> · <a href="https://br.indeed.com/cmp/Remessa-Online">vagas</a></td></tr><tr><td><b>Trace Finance</b><div class="sub">plataforma de pagamentos cross-border</div></td><td>Contas nomeadas e virtuais em BRL, USD e EUR abertas via API, com câmbio embutido e pagamentos cross-border por trilhos locais (Pix, SPEI, ACH, SEPA) para empresas que movimentam dinheiro na América Latina <a href="https://www.tracefinance.com/product" class="sub">fonte</a></td><td class="nowrap"><a href="https://www.tracefinance.com/product">produto</a> · <a href="https://blog.trace.finance/2023/04/conta-global-para-startup/">blog</a></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Movimentos recentes que valem atenção</h2>
+    <p class="lead">Tudo conforme as buscas de 14/10/2026. As fontes estão na coluna <code>observacoes</code> do CSV.</p>
+    <ul>
+      <li><b>Frente Corretora de Câmbio:</b> liquidação extrajudicial decretada pelo BC em 30/04/2026, por situação econômico-financeira e graves violações às normas. Conferido em duas buscas.</li>
+      <li><b>Travelex Bank:</b> a StoneX fechou acordo de compra em ago/2026, e o Cade aprovou sem restrições em set/2026. Falta o aval do BC; o varejo fica fora da venda. Conferido em duas buscas.</li>
+      <li><b>Trace Finance:</b> Série A de US$ 32 mi em 17/06/2026, com contas em BRL, USD e EUR por API e conversão BRL↔stablecoin via Pix.</li>
+      <li><b>Stablecoin no câmbio:</b> segundo o blog do Mercado Bitcoin, a Res. BCB 521 leva stablecoin e pagamento internacional com cripto para o mercado de câmbio, com mudanças a partir de 30/10/2026 (não verificado no texto da norma). A Bitso encerra o varejo no Brasil até 30/10/2026 e se aliou ao MB em pagamentos institucionais. A Foxbit lançou o Prime Desk (câmbio via stablecoin) em 22/04/2026, por ora só para corretoras de câmbio.</li>
+      <li><b>Ebury Bank (ex-Bexs):</b> controlada pelo Santander, oferece conta internacional PJ e payouts para o Brasil via Pix com câmbio 24x7.</li>
+      <li><b>Airwallex:</b> a AWX Brasil foi autorizada como instituição de pagamento em jan/2025. Não foi verificado se a conta para empresa brasileira já está aberta.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Cadastro do Banco Central</h2>
+    <p>A base é a de <b>Dados cadastrais de entidades supervisionadas</b> (Olinda, BcBase v2), atualizada todo dia a partir do Unicad:</p>
+<pre>https://olinda.bcb.gov.br/olinda/servico/BcBase/versao/v2/odata/EntidadesSupervisionadas?$top=5&amp;$format=json
+https://olinda.bcb.gov.br/olinda/servico/BcBase/versao/v2/odata/$metadata</pre>
+    <p>O cadastro não tem histórico de eventos. Por isso, <code>vigia_bc.py</code> guarda um retrato por dia e compara com o anterior: quem entrou, quem saiu e o que mudou (situação, tipo, nome). Com <code>--so-cambio-pagamentos</code>, ficam só câmbio, instituição de pagamento, ativos virtuais e crédito direto. O passo a passo e os alertas que importam para a Ozav estão no <code>cadastro_bc.md</code>.</p>
+<pre>pip install pandas requests
+python vigia_bc.py esquema
+python vigia_bc.py baixar          # todo dia
+python vigia_bc.py diff --so-cambio-pagamentos</pre>
+    <p><b>Exemplo real de hoje: não foi possível.</b> <code>olinda.bcb.gov.br</code> está bloqueado nesta sessão, então não há retrato nem contagem reais, e nenhum foi inventado. Os endereços são os documentados no portal de dados abertos, segundo o buscador; os nomes de campo não foram verificados, e o script os lê do <code>$metadata</code>.</p>
+  </section>
+
+  <section>
+    <h2>As outras 30 empresas</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Empresa</th><th>Concorrência</th><th>Atende PJ no Brasil?</th></tr></thead>
+      <tbody><tr><td><b>Airwallex</b></td><td><span class="chip warn">média</span></td><td>não verificado</td></tr><tr><td><b>Husky (Husky by Nomad)</b></td><td><span class="chip warn">média</span></td><td>sim (só recebimento)</td></tr><tr><td><b>dLocal</b></td><td><span class="chip warn">média</span></td><td>parcial (foco em empresa global que cobra e paga no Brasil)</td></tr><tr><td><b>EBANX</b></td><td><span class="chip warn">média</span></td><td>parcial (foco em empresa estrangeira; PJ brasileira via Remessa Online)</td></tr><tr><td><b>PagBrasil</b></td><td><span class="chip warn">média</span></td><td>parcial (foco em empresa estrangeira que vende ao Brasil)</td></tr><tr><td><b>Payoneer</b></td><td><span class="chip warn">média</span></td><td>sim (recebimento do exterior)</td></tr><tr><td><b>PayPal</b></td><td><span class="chip warn">média</span></td><td>não verificado (guia de terceiro diz que empresas recebem do exterior com conta PayPal)</td></tr><tr><td><b>Rapyd</b></td><td><span class="chip warn">média</span></td><td>não verificado</td></tr><tr><td><b>Bitso Business</b></td><td><span class="chip warn">média</span></td><td>parcial (foco em empresa estrangeira via Pix)</td></tr><tr><td><b>Circle (USDC)</b></td><td><span class="chip warn">média</span></td><td>parcial (empresas elegíveis ao Circle Mint)</td></tr><tr><td><b>Foxbit (Foxbit Infra / Prime Desk)</b></td><td><span class="chip warn">média</span></td><td>parcial (por ora só corretoras de câmbio)</td></tr><tr><td><b>Mercado Bitcoin (MB)</b></td><td><span class="chip warn">média</span></td><td>não verificado</td></tr><tr><td><b>Transfero</b></td><td><span class="chip warn">média</span></td><td>não verificado</td></tr><tr><td><b>Revolut Business</b></td><td><span class="chip bad">baixa</span></td><td>não (não aceita CNPJ brasileiro)</td></tr><tr><td><b>Frente Corretora de Câmbio</b></td><td><span class="chip bad">baixa</span></td><td>não (liquidação extrajudicial em 30/04/2026)</td></tr><tr><td><b>Convera</b></td><td><span class="chip bad">baixa</span></td><td>não verificado</td></tr><tr><td><b>Nium</b></td><td><span class="chip bad">baixa</span></td><td>não verificado (via parceria com a Ebury)</td></tr><tr><td><b>Paysend Business</b></td><td><span class="chip bad">baixa</span></td><td>não verificado (serviço ao Brasil é de consumo)</td></tr><tr><td><b>Thunes</b></td><td><span class="chip bad">baixa</span></td><td>não verificado (só fluxo de entrada)</td></tr><tr><td><b>Binance (Binance Pay Brasil)</b></td><td><span class="chip bad">baixa</span></td><td>não</td></tr><tr><td><b>Banco Daycoval</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>Banco do Brasil (câmbio PJ)</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>BTG Pactual Empresas</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>Itaú (câmbio PJ)</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>transferbank</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>Currencycloud (Visa)</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>Deel</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>Brasil Bitcoin</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>CriptoPix</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr><tr><td><b>UnblockPay</b></td><td><span class="chip neutral">a verificar</span></td><td>não verificado</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Bloqueado nesta sessão</b> (HTTP 403 no proxy de saída; a ferramenta de leitura de páginas também não alcança esses domínios): os sites de todas as empresas, <code>olinda.bcb.gov.br</code> e <code>dadosabertos.bcb.gov.br</code>. Nenhuma página foi aberta.</li>
+      <li>Cada URL do CSV apareceu nos resultados de busca; o que não apareceu ficou em branco. Frases, datas e números vêm dos resumos da busca e estão marcados “não verificado” quando a busca não confirmou.</li>
+      <li>A pesquisa foi dividida entre três agentes, e a cota de buscas acabou antes de alguns bancos e plataformas. Uma busca complementar confirmou Inter e C6. BTG, Itaú, Banco do Brasil, Daycoval, Currencycloud e Deel seguem “a verificar”.</li>
+      <li>A coluna <code>concorrencia_com_ozav</code> é uma classificação desta análise, feita a partir do que cada linha diz: alta (atende PJ brasileira com câmbio), média (adjacente) e baixa (não atende PJ no Brasil ou saiu do mercado).</li>
+      <li>Plataformas que operam por meio de um parceiro autorizado não aparecem com CNPJ próprio no cadastro do BC. Para elas, a vigia é pelo site.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Os arquivos deste artifact são <code>concorrentes.csv</code>, <code>cadastro_bc.md</code>, <code>vigia_bc.py</code> e <code>test_vigia_bc.py</code>.</footer>
+</main>
