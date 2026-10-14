@@ -1,0 +1,294 @@
+diff -ruN a/lib/custos.js b/lib/custos.js
+--- a/lib/custos.js
++++ b/lib/custos.js
+@@ -38,7 +38,9 @@
+ };
+ 
+ function precoDe(modelo) {
+-  const m = String(modelo || '');
++  // 14/10/2026 (auditoria): o ID do OpenRouter traz o fornecedor na frente ("google/gemini-3.5-flash-lite"); sem tirar,
++  // a tabela nunca casava e, sem usage.cost, o livro ficava null e o disjuntor somava zero.
++  const m = String(modelo || '').replace(/^[a-z0-9-]+\//i, '');
+   if (TABELA[m]) return TABELA[m];
+   // Prefixo: "kimi-k3-0905" cai na linha do kimi-k3.
+   const chave = Object.keys(TABELA).find((k) => m.startsWith(k));
+diff -ruN a/llm.js b/llm.js
+--- a/llm.js
++++ b/llm.js
+@@ -224,8 +224,48 @@
+ async function planoVez() {
+   if (_planoRodando >= PLANO_SIMULTANEAS) await new Promise((r) => _planoFila.push(r));
+   _planoRodando++;
++  // 14/10/2026 (auditoria): o limite e da MAQUINA (G7), nao do processo: tres robos do cron no mesmo minuto abriam seis
++  // `claude` de ~250 MB numa VPS de 1 vCPU. A vaga e uma pasta (mkdir e atomico); vaga de processo morto cai.
++  const pasta = path.join(planoPasta(), '.vagas');
++  try {
++    fs.mkdirSync(pasta, { recursive: true });
++  } catch {
++    return null; // sem pasta de vagas, fica so o limite do processo (falha aberta, como antes)
++  }
++  for (;;) {
++    for (let i = 0; i < PLANO_SIMULTANEAS; i++) {
++      const vaga = path.join(pasta, String(i));
++      try {
++        fs.mkdirSync(vaga);
++        fs.writeFileSync(path.join(vaga, 'pid'), String(process.pid));
++        return vaga;
++      } catch {
++        if (vagaAbandonada(vaga)) fs.rmSync(vaga, { recursive: true, force: true });
++      }
++    }
++    await new Promise((r) => setTimeout(r, 200));
++  }
+ }
+-function planoSolta() {
++/** A vaga e de um processo que morreu? (sem pid gravado, so depois de 1 min: o dono pode estar entre o mkdir e a escrita) */
++function vagaAbandonada(vaga) {
++  try {
++    process.kill(Number(fs.readFileSync(path.join(vaga, 'pid'), 'utf8')), 0);
++    return false;
++  } catch (e) {
++    if (e && e.code === 'ESRCH') return true;
++    try {
++      return e.code !== 'EPERM' && Date.now() - fs.statSync(vaga).mtimeMs > 60000;
++    } catch {
++      return false;
++    }
++  }
++}
++function planoSolta(vaga) {
++  try {
++    if (vaga) fs.rmSync(vaga, { recursive: true, force: true });
++  } catch {
++    /* vaga que nao sai cai sozinha quando este processo morrer */
++  }
+   _planoRodando--;
+   const prox = _planoFila.shift();
+   if (prox) prox();
+@@ -262,7 +302,7 @@
+     /* se a pasta nao nasce, o spawn acusa */
+   }
+ 
+-  await planoVez();
++  const vaga = await planoVez();
+   let saida = '';
+   let erro = '';
+   let codigo;
+@@ -273,6 +313,7 @@
+       const filho = /\.js$/.test(bin) ? spawn(process.execPath, [bin, ...args], { cwd: planoPasta(), env, stdio: ['pipe', 'pipe', 'pipe'] }) : spawn(bin, args, { cwd: planoPasta(), env, stdio: ['pipe', 'pipe', 'pipe'] });
+       const relogio = setTimeout(() => {
+         estourou = true;
++        if (filho.exitCode !== null || filho.signalCode !== null) return soltar(); // ja saiu; quem segura e o subprocesso
+         try {
+           filho.kill('SIGTERM');
+         } catch {}
+@@ -284,6 +325,13 @@
+       }, timeoutMs);
+       filho.stdout.on('data', (d) => (saida += d));
+       filho.stderr.on('data', (d) => (erro += d));
++      // 14/10/2026 (auditoria): estourado o tempo, a saida do `claude` morto nao segura a chamada. Sem isto, um subprocesso
++      // dele com a mesma saida aberta prendia a chamada (e a vaga do plano) ate o subprocesso acabar.
++      const soltar = () => {
++        filho.stdout.destroy();
++        filho.stderr.destroy();
++      };
++      filho.on('exit', () => estourou && soltar());
+       filho.stdin.on('error', () => {});
+       filho.on('error', (e) => {
+         clearTimeout(relogio);
+@@ -296,7 +344,7 @@
+       filho.stdin.end(entrada);
+     });
+   } finally {
+-    planoSolta();
++    planoSolta(vaga);
+   }
+   if (estourou) throw new Error(`o plano nao respondeu em ${Math.round(timeoutMs / 1000)}s`);
+ 
+@@ -382,6 +430,18 @@
+ const gastoArq = () => process.env.OZAV_GASTO_ARQ || path.join(AQUI, 'gasto-dia.json');
+ const diaSP = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+ let _gastoProcesso = 0;
++// 14/10/2026 (auditoria): o teto do PROCESSO vale por dia. Processo de longa duracao (bot, servico) nunca zerava e,
++// depois de US$ 1 (ou 5) na vida inteira, toda chamada dele virava DISJUNTOR ate alguem reiniciar.
++let _diaDoProcesso = null;
++function viraODia() {
++  const d = diaSP();
++  if (_diaDoProcesso === d) return;
++  if (_diaDoProcesso !== null) {
++    _gastoProcesso = 0;
++    _tetoAvisado.clear();
++  }
++  _diaDoProcesso = d;
++}
+ 
+ function lerGastoDia() {
+   try {
+@@ -435,6 +495,7 @@
+ 
+ function somarGasto(usd, funcao) {
+   if (!(usd > 0)) return;
++  viraODia();
+   _gastoProcesso += usd;
+   try {
+     comTrava(() => {
+@@ -443,7 +504,9 @@
+       g.chamadas = (g.chamadas || 0) + 1;
+       const lote = loteAtual();
+       if (lote) g.lotes[lote] = Number(((g.lotes[lote] || 0) + usd).toFixed(6));
+-      if (funcao) g.funcoes[funcao] = Number(((g.funcoes[funcao] || 0) + usd).toFixed(6));
++      // 14/10/2026 (auditoria): o lote declarado (teste avisado) tem orcamento proprio e nao come o da operacao;
++      // o tetoDaFuncao ja ignorava o lote ao LER, mas a soma entrava no contador da funcao.
++      if (funcao && !lote) g.funcoes[funcao] = Number(((g.funcoes[funcao] || 0) + usd).toFixed(6));
+       const arq = gastoArq();
+       fs.writeFileSync(arq + '.tmp', JSON.stringify(g));
+       fs.renameSync(arq + '.tmp', arq);
+@@ -454,6 +517,7 @@
+ }
+ 
+ function conferirTeto(quem) {
++  viraODia();
+   const orcamento = Number(process.env.OZAV_ORCAMENTO_USD) > 0 ? Number(process.env.OZAV_ORCAMENTO_USD) : null;
+   const tetoProcesso = orcamento ?? (process.env.OZAV_WORKER ? 5 : 1);
+   if (_gastoProcesso >= tetoProcesso) {
+@@ -498,6 +562,8 @@
+   const gasto = lerGastoDia().funcoes[funcao] || 0;
+   if (gasto < teto) return null;
+   const modo = cfg.ao_estourar === 'so_plano' ? 'so_plano' : 'avisar';
++  // 14/10/2026 (auditoria): sem elo do plano na cadeia (transcricao, leitura), "so o plano" quer dizer PARADA.
++  const temPlano = (cfg.cadeia || []).some((e) => CONFIG.provedores?.[e.slice(0, e.indexOf(':'))]?.tipo === 'claude-cli');
+   // Uma vez por processo (o avisar.js ja segura a repeticao entre processos, por 20h).
+   if (!_tetoAvisado.has(funcao)) {
+     _tetoAvisado.add(funcao);
+@@ -505,7 +571,9 @@
+       'teto-' + funcao,
+       20,
+       `Gasto de modelo: a função "${funcao}" passou do orçamento do dia no OpenRouter (US$ ${gasto.toFixed(2)} de ${teto.toFixed(2)}). ` +
+-        (modo === 'so_plano' ? 'Ela segue só pelo plano do Claude (de graça) até amanhã; nada parou.' : 'Ela segue rodando; vale olhar o painel (http://<IP_VPS>:8778) para ver quem puxou.')
++        (modo === 'so_plano' && !temPlano
++          ? 'Ela está PARADA até amanhã: não tem elo do plano para seguir de graça.'
++          : modo === 'so_plano' ? 'Ela segue só pelo plano do Claude (de graça) até amanhã; nada parou.' : 'Ela segue rodando; vale olhar o painel (http://<IP_VPS>:8778) para ver quem puxou.')
+     );
+   }
+   return { gasto, teto, modo };
+@@ -624,6 +692,9 @@
+   try {
+     res = await fetch(url, { ...opcoes, signal: AbortSignal.timeout(timeoutMs) });
+   } catch (e) {
++    // 14/10/2026 (auditoria): estouro de tempo NAO se repete. Do outro lado a geracao pode seguir (e ser cobrada);
++    // repetir abria ate 4 copias, nenhuma no livro, e segurava o robo 4x o timeout antes do proximo elo (G3).
++    if (e && (e.name === 'TimeoutError' || e.name === 'AbortError')) throw new Error(`sem resposta em ${Math.round(timeoutMs / 1000)}s`);
+     if (tentativa <= 3) {
+       await new Promise((r) => setTimeout(r, 1500 * tentativa));
+       return pedir(url, opcoes, timeoutMs, tentativa + 1);
+@@ -714,6 +785,13 @@
+   return partes;
+ }
+ 
++/** De quem e o modelo (G17): o prefixo do ID no OpenRouter ou o dono do caminho direto. O plano e Anthropic. */
++function fornecedorDe(provedor, modelo) {
++  if (CONFIG.provedores?.[provedor]?.tipo === 'claude-cli') return 'anthropic';
++  if (provedor === 'openrouter') return String(modelo).split('/')[0];
++  return { gemini: 'google', moonshot: 'moonshotai', xai: 'x-ai' }[provedor] || provedor;
++}
++
+ /** O elo leva anexo? So o OpenAI-compativel (OpenRouter e cia.); o plano, a Anthropic nativa e o Google direto, nao. */
+ function aceitaAnexo(provedor) {
+   if (CONFIG.provedores?.[provedor]?.tipo === 'claude-cli') return false;
+@@ -780,15 +858,20 @@
+     // ja vai na instrucao de sistema e o parse valida do mesmo jeito (16/09/2026, teste de modelos).
+     const m = String(e.message);
+     if (/\b400\b/.test(m) && /response_format|json_object|reasoning|cache_control|content|not supported|unsupported|invalid|plugin|file-parser/i.test(m) && (corpo.response_format || corpo.reasoning || embalado || corpo.plugins)) {
++      const antes = JSON.stringify(corpo);
+       delete corpo.response_format;
+-      delete corpo.reasoning;
+-      delete corpo.plugins;
++      // 14/10/2026 (auditoria): o leitor nativo do PDF nunca sai (sem ele o OpenRouter cai no OCR cobrado a parte, G16) e o
++      // raciocinio declarado so sai quando o erro fala dele (sem o campo, o provedor liga o padrao dele, G15).
++      if (/reasoning|effort|thinking/i.test(m)) delete corpo.reasoning;
+       // Provedor que nao aceita o sistema em partes: volta pro texto corrido, identico.
+       if (embalado) corpo.messages[0] = { role: 'system', content: fixo + sis };
++      if (JSON.stringify(corpo) === antes) throw e; // nada mudou: o mesmo pedido daria o mesmo 400; a vez passa
+       b = await chamar();
+     } else throw e;
+   }
+   const escolha = b?.choices?.[0];
++  // 14/10/2026 (auditoria): 200 sem "choices" (o erro do fornecedor pode vir no corpo) nao e resposta.
++  if (!escolha) throw new Error(`resposta sem choices${b && b.error ? ': ' + limpar(JSON.stringify(b.error)).slice(0, 160) : ''}`);
+   const texto = escolha?.message?.content ?? '';
+   if (!texto && escolha?.finish_reason && escolha.finish_reason !== 'stop') {
+     throw new Error(`geracao interrompida (${escolha.finish_reason})`);
+@@ -798,6 +881,7 @@
+     entrada: b?.usage?.prompt_tokens || 0,
+     saida: b?.usage?.completion_tokens || 0,
+     custo: typeof b?.usage?.cost === 'number' ? b.usage.cost : undefined,
++    fim: escolha.finish_reason || null,
+   };
+ }
+ 
+@@ -836,7 +920,7 @@
+  *   { conteudo, funcao, provedor, modelo, custo, pulados[], falhas[] }
+  * `conteudo` e texto, ou objeto quando `esquema` foi pedido.
+  */
+-async function gerarDetalhado({ funcao, prompt, sistema, sistemaFixo, esquema, temperatura, maxSaida, timeoutMs, forcarElo, raciocinio, anexos }) {
++async function gerarDetalhado({ funcao, prompt, sistema, sistemaFixo, esquema, temperatura, maxSaida, timeoutMs, forcarElo, raciocinio, anexos, evitarFornecedor }) {
+   const cfg = CONFIG.funcoes?.[funcao];
+   if (!cfg) throw new Error(`funcao desconhecida: "${funcao}". As que existem: ${Object.keys(CONFIG.funcoes || {}).join(', ')} (modelos.json)`);
+   // `sistemaFixo`: o comeco do sistema que se repete igual em toda chamada (voz, regras). No
+@@ -860,12 +944,19 @@
+   conferirTeto(quem);
+   const pulados = [];
+   const falhas = [];
++  let erros = 0;
+ 
+   for (const elo of cadeia) {
+     const dois = elo.indexOf(':');
+     const provedor = elo.slice(0, dois);
+     const modelo = elo.slice(dois + 1);
+     const doPlano = CONFIG.provedores?.[provedor]?.tipo === 'claude-cli';
++    // 14/10/2026 (auditoria): G17 vale tambem quando a redacao caiu na reserva. Quem pede a segunda leitura passa
++    // `evitarFornecedor` = o `fornecedor` do resultado da redacao, e o elo do mesmo fornecedor sai da cadeia.
++    if (evitarFornecedor && [].concat(evitarFornecedor).includes(fornecedorDe(provedor, modelo))) {
++      falhas.push(`${elo}: mesmo fornecedor de quem redigiu (G17)`);
++      continue;
++    }
+     // Com anexo, o elo que so leva texto sai antes de qualquer coisa: o plano nem e consultado.
+     if (req.anexos && !aceitaAnexo(provedor)) {
+       falhas.push(`${elo}: nao leva anexo (audio, PDF ou imagem)`);
+@@ -900,6 +991,10 @@
+         custos.registrar({ modelo, entrada: r.entrada, saida: r.saida, quem, custo: r.custo });
+         const preco = custos.precoDe(modelo);
+         somarGasto(r.custo ?? (preco ? (r.entrada * preco.entrada + r.saida * preco.saida) / 1e6 : 0), funcao);
++        // 14/10/2026 (auditoria): resposta vazia ou cortada no limite de saida nao e sucesso (o plano ja recusava vazio).
++        // O custo ja entrou no livro e no disjuntor logo acima; a cadeia passa a vez.
++        if (!String(r.texto ?? '').trim()) throw new Error('resposta vazia');
++        if (r.fim === 'length') throw new Error(`resposta cortada no limite de saida (${req.maxSaida} tokens)`);
+       }
+ 
+       let conteudo = r.texto;
+@@ -919,9 +1014,24 @@
+             throw new Error(`esperava JSON e veio outra coisa: ${t.slice(0, 160)}`);
+           }
+         }
++        // 14/10/2026 (auditoria): JSON valido do tipo errado (null, lista, texto) ou sem campo obrigatorio nao e sucesso.
++        if (esquema.type === 'object') {
++          if (!conteudo || typeof conteudo !== 'object' || Array.isArray(conteudo)) throw new Error(`esperava objeto JSON e veio ${JSON.stringify(conteudo).slice(0, 60)}`);
++          const falta = (Array.isArray(esquema.required) ? esquema.required : []).filter((k) => !(k in conteudo));
++          if (falta.length) throw new Error(`JSON sem campo obrigatorio: ${falta.join(', ')}`);
++        }
+       }
+-      return { conteudo, funcao, provedor, modelo, custo: r.custo ?? null, planoUsd: r.planoUsd ?? null, pulados, falhas };
++      return { conteudo, funcao, provedor, modelo, fornecedor: fornecedorDe(provedor, modelo), custo: r.custo ?? null, planoUsd: r.planoUsd ?? null, pulados, falhas };
+     } catch (e) {
++      // 14/10/2026 (auditoria): sem credito no OpenRouter (402) e o 17/09 de novo; o dono fica sabendo na hora.
++      if (provedor === 'openrouter' && /^402\b/.test(String(e.message))) {
++        avisarLorenzo('openrouter-402', 6, 'Gateway de modelos: o OpenRouter recusou por falta de crédito (402). Só as funções com o plano do Claude na frente seguem; as outras param até recarregar.');
++      }
++      // 14/10/2026 (auditoria): elo que FALHOU (nao o pulado por chave, anexo ou orcamento) e ha reserva atras: o dono fica
++      // sabendo uma vez por dia por funcao (a chave do avisar.js segura a repeticao), em vez de pagar a reserva calado.
++      if (!forcarElo && !erros++ && elo !== cadeia[cadeia.length - 1]) {
++        avisarLorenzo('reserva-' + funcao, 20, `Gateway de modelos: na função "${funcao}" o elo ${elo} falhou (${limpar(e.message).replace(/\s+/g, ' ').slice(0, 120)}); a chamada seguiu pela reserva da cadeia, que pode custar mais.`);
++      }
+       falhas.push(`${elo}: ${limpar(e.message).slice(0, 200)}`);
+     }
+   }

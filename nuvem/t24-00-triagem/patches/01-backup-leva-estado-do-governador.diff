@@ -1,0 +1,26 @@
+diff -ruN a/ozav/deploy/backup.sh b/ozav/deploy/backup.sh
+--- a/ozav/deploy/backup.sh
++++ b/ozav/deploy/backup.sh
+@@ -124,7 +124,8 @@
+   $( [ -f "$RAIZ/telegram/sessao.txt" ] && echo telegram/sessao.txt ) \
+   $( [ -f "$RAIZ/robos-desligados.json" ] && echo robos-desligados.json ) \
+   $( [ -f "$RAIZ/pen-numeros.json" ] && echo pen-numeros.json ) \
+-  $( for f in conduzir-config.json feriados.txt silencio.txt decidir-vistas.json plano-estado.json hunting-bc-estado.json fechamento-estado.json; do [ -f "$RAIZ/$f" ] && echo "$f"; done ) \
++  $( for f in conduzir-config.json feriados.txt silencio.txt decidir-vistas.json plano-estado.json hunting-bc-estado.json fechamento-estado.json \
++      whatsapp-governador.json catraca-regras.json; do [ -f "$RAIZ/$f" ] && echo "$f"; done ) \
+   $( cd "$RAIZ" && ls *.jsonl 2>/dev/null ) \
+   -C "$MKT" \
+   $( [ -d "$MKT/estado" ] && echo estado ) \
+diff -ruN a/ozav/deploy/restaurar-estado.sh b/ozav/deploy/restaurar-estado.sh
+--- a/ozav/deploy/restaurar-estado.sh
++++ b/ozav/deploy/restaurar-estado.sh
+@@ -59,7 +59,8 @@
+ mover whatsapp-auth "$HOME/whatsapp-auth"
+ # raiz 2: ~/ozav-crm
+ for x in whatsapp/dados/mensagens.db whatsapp/auth telegram/credenciais.json telegram/sessao.txt robos-desligados.json pen-numeros.json \
+-         conduzir-config.json feriados.txt silencio.txt decidir-vistas.json plano-estado.json hunting-bc-estado.json fechamento-estado.json; do
++         conduzir-config.json feriados.txt silencio.txt decidir-vistas.json plano-estado.json hunting-bc-estado.json fechamento-estado.json \
++         whatsapp-governador.json catraca-regras.json; do
+   mover "$x" "$RAIZ/$x"
+ done
+ for f in "$TMP"/*.jsonl; do

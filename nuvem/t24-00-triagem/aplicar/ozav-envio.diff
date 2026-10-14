@@ -1,0 +1,438 @@
+diff -ruN a/catraca.js b/catraca.js
+--- a/catraca.js
++++ b/catraca.js
+@@ -221,6 +221,21 @@
+     return padrao;
+   }
+ }
++/** O arquivo existe e nao e JSON (escrita cortada, virgula sobrando na edicao a mao)? Arquivo que nao existe nao e ilegivel. */
++function jsonIlegivel(p) {
++  let txt;
++  try {
++    txt = fs.readFileSync(p, 'utf8');
++  } catch (err) {
++    return !!err && err.code !== 'ENOENT';
++  }
++  try {
++    JSON.parse(txt);
++    return false;
++  } catch {
++    return true;
++  }
++}
+ function lerJsonl(p) {
+   try {
+     return fs
+@@ -247,11 +262,14 @@
+     .trim();
+ 
+ /** O nome do painel casa por substring, sem acento e sem maiuscula, com a conversa ou a empresa. */
++// So letras e numeros (14/10/2026, auditoria): espaco duro, espaco invisivel, espaco duplo, hifen, emoji e letra de
++// largura total no nome do grupo faziam a trava nao casar, e o robo escrevia na conversa travada.
++const soLetras = (s) => semAcento(String(s || '').normalize('NFKC')).replace(/[^\p{L}\p{N}]/gu, '');
+ function casa(item, lista) {
+-  const alvos = [item.conversa, item.empresa, item.grupo_nome].filter(Boolean).map(semAcento);
++  const alvos = [item.conversa, item.empresa, item.grupo_nome].filter(Boolean).map(soLetras);
+   if (!alvos.length) return null;
+   for (const n of lista || []) {
+-    const s = semAcento(n);
++    const s = soLetras(n);
+     if (s.length < 3) continue; // "oz" casaria com tudo
+     if (alvos.some((a) => a.includes(s))) return n;
+   }
+@@ -526,6 +544,9 @@
+   };
+   const painel = dep.painel || lerJson(PAINEL, {}) || {};
+   const nunca = dep.nunca || [...((lerJson(MAPEAMENTO, {}) || {}).nunca_mandar || []), ...((lerJson(GANCHOS, {}) || {}).nunca || [])];
++  // Ilegivel nao e vazio (14/10/2026, auditoria): painel ou lista nunca que existe e nao se le virava "nenhuma trava" em
++  // silencio. A regra 0 de regras() fecha com isto.
++  const ilegiveis = [...(dep.painel ? [] : [PAINEL]), ...(dep.nunca ? [] : [MAPEAMENTO, GANCHOS])].filter(jsonIlegivel).map((p) => path.basename(p));
+   const outbox = () => require('./whatsapp/lib/outbox');
+   let _pend = dep.pendentes || null;
+   let _fila = null;
+@@ -539,6 +560,7 @@
+     },
+     painel,
+     nunca,
++    ilegiveis,
+     get semBanco() {
+       return !banco();
+     },
+@@ -633,6 +655,8 @@
+ // por dias e enxerga a data nova sem recaptura. Sao Paulo sem horario de verao desde 2019 (UTC-3 fixo).
+ const FERIADOS_NACIONAIS = new Set(['2026-10-12', '2026-11-02', '2026-11-20', '2026-12-25', '2027-01-01', '2027-02-08', '2027-02-09', '2027-03-26', '2027-04-21', '2027-05-01', '2027-05-27', '2027-09-07', '2027-10-12', '2027-11-02', '2027-11-15', '2027-11-20', '2027-12-25']);
+ const FERIADOS_ARQ = path.join(AQUI, 'feriados.txt');
++// Os dias santos judaicos do feriados.txt (nome sem acento): comecam no por do sol da vespera (ver regras(), 1c).
++const DIA_SANTO = /pessach|shavuot|rosh hashana|yom kip+ur|sucot|shemini atzeret|simchat tora/;
+ const _feriados = { arq: null, visto: 0, mtime: null, mapa: null };
+ function lerFeriados(arq = FERIADOS_ARQ) {
+   const agora = Date.now();
+@@ -651,8 +675,8 @@
+   if (mtime !== null) {
+     try {
+       for (const l of fs.readFileSync(arq, 'utf8').split('\n')) {
+-        const m = /^(\d{4}-\d{2}-\d{2})\s+(\S.*?)\s*$/.exec(l);
+-        if (m) mapa.set(m[1], m[2]);
++        const m = /^(\d{4}-\d{2}-\d{2})(?:\s+(\S.*?))?\s*$/.exec(l);
++        if (m) mapa.set(m[1], m[2] || 'feriado'); // data sem nome tambem e feriado (14/10/2026, auditoria)
+       }
+     } catch {
+       /* ilegivel: fica a rede de seguranca */
+@@ -1080,6 +1104,13 @@
+   const R = F.regras || regrasVivas();
+   let promessa = null;
+ 
++  // 0. PAINEL ILEGIVEL (14/10/2026, auditoria): sem saber o que esta travado, nada de robo sai (falha FECHADA: a R4 diz
++  // "falha aberta no erro", mas aqui o erro soltaria justamente o que o Lorenzo mandou segurar). Lista nunca ilegivel
++  // fecha so follow-up e frio, como a regra 3.
++  const ileg = F.ilegiveis || [];
++  if (ileg.includes(path.basename(PAINEL))) return nao(`painel ilegivel (${path.basename(PAINEL)}): sem saber o que esta travado, nada de robo sai ate consertar o arquivo`);
++  if ((tipo === 'followup' || tipo === 'frio') && ileg.length) return nao(`lista nunca_mandar ilegivel (${ileg.join(', ')}): follow-up e toque frio param ate consertar o arquivo`);
++
+   // 1. Travada: o Lorenzo conduz na mao. Nada, de robo nenhum, nem acao de grupo.
+   const trav = casa(item, painel.travadas);
+   if (trav) return nao(`conversa travada no painel ("${trav}"): o Lorenzo conduz na mao`);
+@@ -1130,6 +1161,16 @@
+       }
+     }
+   }
++  // 1c. VESPERA DE DIA SANTO JUDAICO (14/10/2026, auditoria): o dia santo comeca no por do sol da vespera, e o
++  // feriados.txt so tem a data. Das 17h de SP da vespera em diante (antes do por do sol em qualquer epoca do ano em SP),
++  // o que procura gente para como no proprio dia. Proposta a confirmar com o Lorenzo; o Shabbat nao entra (nenhuma
++  // regra fala dele).
++  const amanha = feriado ? null : feriadoDe(diaSPde(agoraS + 86400));
++  if (amanha && DIA_SANTO.test(semAcento(amanha)) && minutoSP(agoraS) >= 17 * 60) {
++    if (tipo === 'followup' || tipo === 'frio') return nao(`vespera de ${amanha} depois das 17h (o dia santo comeca no por do sol): follow-up e toque frio so no proximo dia util`);
++    const pedV = tipo === 'resposta' ? pedidoDaCampanha(camp) : null;
++    if (pedV && pedV.n !== 1) return nao(`vespera de ${amanha} depois das 17h (o dia santo comeca no por do sol): lembrete de pedido ao cliente so no proximo dia util`);
++  }
+ 
+   // 2. Cautela: conta em producao. So a devolutiva do time e a agenda passam.
+   const caut = casa(item, painel.cautela);
+@@ -1330,6 +1371,8 @@
+   fs.renameSync(tmp, PAINEL);
+ }
+ function mexerPainel(lista, nome, por) {
++  // Painel ilegivel (14/10/2026, auditoria): gravar por cima apagaria todas as travas e cautelas que estavam no arquivo.
++  if (jsonIlegivel(PAINEL)) throw new Error(`${path.basename(PAINEL)} ilegivel: conserte o arquivo antes de mexer no painel (gravar agora apagaria todas as travas)`);
+   const p = lerPainel();
+   const atual = Array.isArray(p[lista]) ? p[lista] : [];
+   const s = semAcento(nome);
+diff -ruN a/lib/conta-nominal.js b/lib/conta-nominal.js
+--- a/lib/conta-nominal.js
++++ b/lib/conta-nominal.js
+@@ -29,7 +29,9 @@
+   }
+ }
+ 
+-const sa = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
++// NFKD, sem caractere invisivel e com espaco unico (14/10/2026, auditoria): espaco duro, espaco duplo e espaco de
++// largura zero no meio de "conta em reais" faziam o pedido escapar (as expressoes abaixo esperam um espaco comum).
++const sa = (t) => String(t || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/\p{Cf}/gu, '').replace(/\s+/g, ' ').toLowerCase();
+ 
+ const NOMINAL = /\b(contas? nomina(l|is)|contas? (em|de) (reais|real|brl|dolar(es)?|euros?|libras?|usd|eur|gbp)|contas? (brl|usd|eur|gbp|global|globais|multimoeda)|named accounts?|(brl|usd|eur|gbp) accounts?|virtual accounts?|account (in|for) (brl|usd|eur|gbp|reais|dollars?|euros?))\b/;
+ const DOC = /\b(document\w*|comprovante\w*|kyc|kyb|cadastr\w*|extrato\w*|dre|ein|origem dos recursos|contrato social|selfie|residencia|endereco|genero|sexo|imposto de renda|\bir\b|dossie|termo\w*|aceite|precis(a|am|amos) (d[oe]|da|das|dos)|falta(m)?|pendente\w*|pendencia\w*|proof of (address|residence)|address proof|tax id|bank statement|onboarding)\b/;
+diff -ruN a/trava-reenvio.js b/trava-reenvio.js
+--- a/trava-reenvio.js
++++ b/trava-reenvio.js
+@@ -42,10 +42,14 @@
+     if (!(t > agora - JANELA_MS)) continue;
+     ultima.set(f.chave, f); // a mais recente vence (o arquivo é só acréscimo)
+   }
++  // Envio interrompido por queda do processo (14/10/2026, auditoria): tentativa anotada pelo dreno sem enviada nem falha
++  // depois. Ja esta fora dos pendentes; entra aqui como erro de conexao, com o mesmo aviso ao Lorenzo.
++  const interrompidos = outbox.incertos ? outbox.incertos() : [];
++  for (const m of interrompidos) ultima.set(m.chave, { chave: m.chave, erro: 'connection lost (o processo do dreno caiu no meio do envio)', em: m.tentativa.em });
+   if (!ultima.size) return;
+ 
+   let n = 0;
+-  for (const m of outbox.pendentes()) {
++  for (const m of [...outbox.pendentes(), ...interrompidos]) {
+     const f = ultima.get(m.chave);
+     if (!f || m.canal !== 'whatsapp' || !AMBIGUO.test(String(f.erro || ''))) continue;
+     // Mensagem para o próprio Lorenzo: repetir não incomoda cliente nenhum.
+diff -ruN a/whatsapp/lib/outbox.js b/whatsapp/lib/outbox.js
+--- a/whatsapp/lib/outbox.js
++++ b/whatsapp/lib/outbox.js
+@@ -415,7 +415,48 @@
+   return m;
+ }
+ 
++// UM ROBO POR VEZ NA FILA, ENTRE PROCESSOS (14/10/2026, auditoria da nuvem). Ler a fila, passar na catraca e acrescentar
++// a linha nao era atomico: robos do mesmo minuto de cron liam a fila sem o item do outro e entravam juntos para a mesma
++// conversa, por cima do "um robo por vez" (R15). A trava e uma pasta (mkdir e atomico): quem pega le, decide e escreve;
++// quem chega espera ate 10 s. Pasta com mais de 30 s e de quem caiu segurando. Sem a trava nada entra (falha FECHADA):
++// o erro volta a quem chamou, como o "sem chave nem campanha", e o robo tenta no proximo ciclo.
++const TRAVA_FILA = FILA + '.trava';
++function travarFila(esperaMs = 10e3) {
++  const ate = Date.now() + esperaMs;
++  for (;;) {
++    try {
++      fs.mkdirSync(TRAVA_FILA);
++      return true;
++    } catch (err) {
++      if (!err || err.code !== 'EEXIST') return false;
++    }
++    try {
++      if (Date.now() - fs.statSync(TRAVA_FILA).mtimeMs > 30e3) fs.rmdirSync(TRAVA_FILA);
++    } catch {
++      /* o dono soltou agora: tenta de novo */
++    }
++    if (Date.now() > ate) return false;
++    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);
++  }
++}
++function soltarFila() {
++  try {
++    fs.rmdirSync(TRAVA_FILA);
++  } catch {
++    /* ja solta */
++  }
++}
++
+ function enfileirar(mensagens) {
++  if (!travarFila()) throw new Error('fila ocupada por outro robo ha mais de 10 s (fila-envio.jsonl.trava): nada entrou; tente de novo');
++  try {
++    return enfileirarTravado(mensagens);
++  } finally {
++    soltarFila();
++  }
++}
++
++function enfileirarTravado(mensagens) {
+   let desviadas = 0;
+   const enviadas = jaEnviadas();
+   const pend = pendentes();
+@@ -551,9 +592,10 @@
+ function pendentes() {
+   const enviadas = jaEnviadas();
+   const desistidas = jaDesistidas();
++  const perdidas = tentativasPerdidas(); // envio interrompido por queda: nao sai de novo sozinho (ver incertos)
+   const vistas = new Set();
+   const fila = lerJsonl(FILA).filter((x) => {
+-    if (enviadas.has(x.chave) || desistidas.has(x.chave) || vistas.has(x.chave)) return false;
++    if (enviadas.has(x.chave) || desistidas.has(x.chave) || perdidas.has(x.chave) || vistas.has(x.chave)) return false;
+     vistas.add(x.chave);
+     return true;
+   });
+@@ -600,7 +642,56 @@
+   }
+ }
+ 
++/**
++ * ENVIO EM CURSO (14/10/2026, auditoria da nuvem). A trava-reenvio (R36) so ve o envio que FALHOU com erro de conexao.
++ * Se o processo do dreno cai entre o sendMessage e o marcarEnviada (kill, falta de memoria, reboot, deploy), nao fica
++ * falha nenhuma: o item continua pendente e o dreno que sobe manda de novo. E o 28/09 por outro caminho.
++ *
++ * O dreno anota a tentativa ANTES de mandar (marcarEnviando), com o pid. Tentativa de WhatsApp sem enviada, sem
++ * desistida e sem falha depois dela, de processo que ja nao existe, e envio incerto: sai dos pendentes e a
++ * trava-reenvio manda o texto ao Lorenzo para conferir, como no erro de conexao. Tentativa de processo vivo e envio em
++ * curso: segue na fila (a catraca dos outros robos precisa ve-la). Mensagem ao proprio Lorenzo nao entra (R36).
++ *
++ * SO VALE COM O DRENO CHAMANDO marcarEnviando(m) logo antes do envio (whatsapp/conectar.js, fora deste pacote).
++ */
++const TENTATIVAS = path.join(RAIZ, 'fila-envio-tentativas.jsonl');
++function marcarEnviando(m) {
++  fs.appendFileSync(TENTATIVAS, JSON.stringify({ chave: m.chave, canal: m.canal, conversa: m.conversa, jid: m.jid, pid: process.pid, em: new Date().toISOString() }) + '\n');
++}
++const processoVivo = (pid) => {
++  try {
++    process.kill(pid, 0);
++    return true;
++  } catch (err) {
++    return !!err && err.code === 'EPERM';
++  }
++};
++/** chave -> a ultima tentativa de envio que ficou sem desfecho (processo morto, sem enviada, desistida ou falha depois). */
++function tentativasPerdidas() {
++  const ultima = new Map();
++  for (const t of lerJsonl(TENTATIVAS)) if (t && t.chave) ultima.set(t.chave, t);
++  if (!ultima.size) return ultima;
++  for (const f of lerJsonl(path.join(RAIZ, 'fila-envio-falhas.jsonl'))) {
++    const t = f && ultima.get(f.chave);
++    if (t && Date.parse(f.em) >= Date.parse(t.em)) ultima.delete(f.chave);
++  }
++  const enviadas = jaEnviadas();
++  const desistidas = jaDesistidas();
++  for (const [chave, t] of ultima) {
++    if (t.canal !== 'whatsapp' || ehDoLorenzo(t.jid) || enviadas.has(chave) || desistidas.has(chave) || processoVivo(Number(t.pid))) ultima.delete(chave);
++  }
++  return ultima;
++}
++/** Os itens da fila com envio interrompido: podem ter saido. Nao reenviar; mostrar ao Lorenzo (trava-reenvio). */
++function incertos() {
++  const perdidas = tentativasPerdidas();
++  const vistas = new Set();
++  return lerJsonl(FILA)
++    .filter((x) => perdidas.has(x.chave) && !vistas.has(x.chave) && vistas.add(x.chave))
++    .map((x) => ({ ...x, tentativa: perdidas.get(x.chave) }));
++}
++
+ module.exports = {
+   canalDeControle, paraOLorenzo, ehDoLorenzo, jidsDoLorenzo, JID_SLACK_LORENZO,
+   semTravessao, FILA, ENVIADOS, chaveDe, enfileirar, pendentes, marcarEnviada, registrarFalha, jaEnviadas, lerJsonl,
+-  desistir, jaDesistidas, DESISTIDAS , prioridadeDe, PRIORIDADE_RESPOSTA, partesDoTexto, aplicarCorte };
++  desistir, jaDesistidas, DESISTIDAS , prioridadeDe, PRIORIDADE_RESPOSTA, partesDoTexto, aplicarCorte, marcarEnviando, incertos };
+diff -ruN a/whatsapp-governador.js b/whatsapp-governador.js
+--- a/whatsapp-governador.js
++++ b/whatsapp-governador.js
+@@ -103,7 +103,12 @@
+ const GAP_MAX_MIN = Number(process.env.OZAV_WPP_GAP_MAX || 4);
+ const DISJUNTOR_NOVAS_H = 48;
+ const DISJUNTOR_TUDO_H = 3;
+-const SINAL = /rate-?overlimit|too many|forbidden|not-authorized|\b40[13]\b|logged ?out|loggedout|spam|blocked|banned/i;
++// 14/10/2026 (tarefa 18, nuvem): os sinais de RESTRICAO de 2025-2026. Conta restrita nao inicia conversa nova, nao cria
++// grupo e perde os aparelhos conectados (FAQ "About restricted accounts"); no Baileys isso chega como o erro 463
++// ("NackCallerReachoutTimelocked", a trava de reach-out), como RESTRICT_ALL_COMPANIONS, como 401 device_removed ou
++// como o aviso "not allowed to use WhatsApp" / "subject to restrictions" (relatos nas issues 2441, 2658 e 2805 do
++// Baileys). Sem isto, o 463 caia como falha comum e a fila seguia tentando contato novo durante a restricao.
++const SINAL = /rate-?overlimit|too many|forbidden|not-authorized|\b40[13]\b|logged ?out|loggedout|spam|blocked|banned|\b463\b|reach-?out|time-?lock|restrict|device[_ ]?removed|not allowed to use whatsapp/i;
+ const ACOES_NOVAS = new Set(['criar_grupo', 'adicionar_time', 'convidar', 'remover_participante', 'oi_pendente']);
+ // A pista das respostas (29/09/2026): teto por hora proprio e intervalo curto, em segundos.
+ // A reserva de toques da conducao na pista de follow-up (29/09/2026): leva/regua param antes, o toque da
+@@ -113,6 +118,13 @@
+ const RESP_HORA = Number(process.env.OZAV_WPP_RESP_HORA || 20);
+ const RESP_GAP_S = Number(process.env.OZAV_WPP_RESP_GAP_S || 75);
+ const RESP_DIA = Number(process.env.OZAV_WPP_RESP_DIA || 80);
++// MENSAGENS SEM RESPOSTA (14/10/2026, tarefa 18, nuvem). Em 17/10/2025 o WhatsApp anunciou o teste de um teto MENSAL de
++// mensagens mandadas a quem nao responde (pessoas e empresas; numero nao divulgado; a resposta da pessoa tira da conta
++// as mensagens mandadas a ela). O governador nao media isso. Agora mede no privado (30 dias, pelo livro e pelo banco
++// da captura) e so segura com teto ligado: OZAV_WPP_SEM_RESPOSTA_30D > 0. Padrao 0 = so mede, porque o numero do
++// WhatsApp nao e publico e um teto chutado pararia o comercial. Grupo fica fora (o time escreve nos grupos e contaria
++// como resposta; e o teste do WhatsApp fala de pessoas).
++const SEM_RESPOSTA_30D = Number(process.env.OZAV_WPP_SEM_RESPOSTA_30D || 0);
+ 
+ /** Resposta a quem nos escreveu? Pelo classificar da catraca (a mesma regra de todo robo). */
+ function ehResposta(m) {
+@@ -147,13 +159,18 @@
+ function lerEstado() {
+   try {
+     return { ...PADRAO, ...JSON.parse(fs.readFileSync(ESTADO, 'utf8')) };
+-  } catch {
+-    return { ...PADRAO };
++  } catch (err) {
++    // Sem o arquivo (primeira vez): o padrao. Arquivo que existe e nao se le (14/10/2026, auditoria): o disjuntor, a
++    // pausa e o aquecimento que estavam nele sumiriam em silencio. Marca `ilegivel`: o motivo() segura tudo e o
++    // status() leva a marca a convivencia ("na duvida, nao").
++    if (err && err.code === 'ENOENT') return { ...PADRAO };
++    return { ...PADRAO, ilegivel: String((err && err.message) || err).slice(0, 80) };
+   }
+ }
+ function gravarEstado(e) {
+   const tmp = ESTADO + '.tmp';
+-  fs.writeFileSync(tmp, JSON.stringify(e, null, 2));
++  const { ilegivel, ...limpo } = e; // gravar conserta o arquivo; a marca nao vai para o disco
++  fs.writeFileSync(tmp, JSON.stringify(limpo, null, 2));
+   fs.renameSync(tmp, ESTADO);
+ }
+ function livro(desdeMs) {
+@@ -211,7 +228,14 @@
+ function naJanelaSP(agora) {
+   const sp = new Date(agora - 3 * 3600e3);
+   const min = sp.getUTCHours() * 60 + sp.getUTCMinutes();
+-  return sp.getUTCDay() >= 1 && sp.getUTCDay() <= 5 && min >= 8 * 60 && min < 20 * 60;
++  if (!(sp.getUTCDay() >= 1 && sp.getUTCDay() <= 5 && min >= 8 * 60 && min < 20 * 60)) return false;
++  // Feriado da Ozav nao e dia util (14/10/2026, auditoria): o mesmo calendario da catraca (feriados.txt). Sem a
++  // catraca, na duvida, nao.
++  try {
++    return require('./catraca').ehDiaUtil(sp.toISOString().slice(0, 10));
++  } catch {
++    return false;
++  }
+ }
+ 
+ /** O dia de calendario em SP (UTC-3 fixo: o Brasil nao tem horario de verao desde 2019). */
+@@ -287,6 +311,7 @@
+ function motivo(m, agora, db) {
+   if (m.canal !== 'whatsapp') return null;
+   const e = lerEstado();
++  if (e.ilegivel) return `governador: estado ilegivel em whatsapp-governador.json (${e.ilegivel}): o disjuntor pode estar armado; nada sai ate consertar`;
+   if (e.disjuntor_tudo_ate && Date.parse(e.disjuntor_tudo_ate) > agora) return 'governador: disjuntor armado ate ' + e.disjuntor_tudo_ate;
+   // Para o proprio Lorenzo: so o disjuntor segura (ver o cabecalho).
+   if (m.canal_fixo === true) return null;
+@@ -329,6 +354,11 @@
+   if (ultima && !resposta && agora - Date.parse(ultima.em) < intervaloMs(ultima, lim)) {
+     return `governador: intervalo entre mensagens (${lim.gap_min}-${lim.gap_max} min, ${lim.fase})`;
+   }
++  if (SEM_RESPOSTA_30D > 0 && !resposta) {
++    const sr = semResposta(agora, db);
++    if (sr === null) return 'governador: teto de mensagens sem resposta ligado, mas sem o banco da captura para contar (na duvida, segura)';
++    if (sr.mensagens >= SEM_RESPOSTA_30D) return `governador: ${sr.mensagens} mensagens sem resposta no privado em 30 dias (teto ${SEM_RESPOSTA_30D}); so resposta sai ate alguem responder`;
++  }
+   if (!ehNova(m, db)) return null;
+   // O "oi" de grupo novo so em dia util, 8h-20h de SP (02/10/2026). Ele espera o cliente entrar pelo
+   // convite e nao tinha janela (o criar_grupo tem, pelo so_na_janela de quem pede): um cliente que
+@@ -358,7 +388,37 @@
+     return;
+   }
+   const nova = ehNova(m, db);
+-  anotar({ chave: m.chave, acao: m.acao || 'msg', conversa: m.conversa, nova, resposta: ehResposta(m), comeco: nova ? comeco(m.texto) : null });
++  // jid (14/10/2026): para contar as mensagens sem resposta (semResposta). Linha velha, sem jid, fica fora da conta.
++  anotar({ chave: m.chave, acao: m.acao || 'msg', conversa: m.conversa, jid: m.jid || null, nova, resposta: ehResposta(m), comeco: nova ? comeco(m.texto) : null });
++}
++
++/**
++ * As mensagens nossas de iniciativa (nao resposta) no PRIVADO nos ultimos `dias` que a pessoa ainda nao respondeu:
++ * nenhuma fala dela (de_mim = 0) no banco da captura depois do envio. {mensagens, contatos}, ou null sem banco.
++ */
++function semResposta(agora = Date.now(), db, dias = 30) {
++  if (!db) return null;
++  const envios = livro(agora - dias * 86400e3).filter((x) => ehEnvio(x) && !x.resposta && x.jid && !/@g\.us$/.test(String(x.jid)));
++  const ultimaDeles = new Map();
++  let mensagens = 0;
++  const contatos = new Set();
++  try {
++    for (const x of envios) {
++      const jid = String(x.jid);
++      if (!ultimaDeles.has(jid)) {
++        const base = jid.split('@')[0].split(':')[0];
++        const r = db.prepare('SELECT MAX(ts) AS t FROM mensagens WHERE de_mim = 0 AND (jid = ? OR jid LIKE ?)').get(jid, base + '@%');
++        ultimaDeles.set(jid, r && r.t ? Number(r.t) : 0);
++      }
++      if (ultimaDeles.get(jid) * 1000 <= Date.parse(x.em)) {
++        mensagens++;
++        contatos.add(jid);
++      }
++    }
++  } catch {
++    return null;
++  }
++  return { mensagens, contatos: contatos.size, dias };
+ }
+ 
+ /** Chamado em toda falha e queda. Se for sinal do WhatsApp, arma o disjuntor e avisa. */
+@@ -418,7 +478,7 @@
+   gravarEstado(e);
+ }
+ 
+-function status(agora = Date.now()) {
++function status(agora = Date.now(), db) {
+   const e = lerEstado();
+   const dia = livro(agora - 24 * 3600e3).filter(ehEnvio);
+   const lim = limites(agora, e);
+@@ -433,10 +493,11 @@
+     respostas_ultima_hora: dia.filter((x) => x.resposta && Date.parse(x.em) >= agora - 3600e3).length,
+     respostas_24h: dia.filter((x) => x.resposta).length,
+     proxima_livre_as: ultima ? new Date(Date.parse(ultima.em) + intervaloMs(ultima, lim)).toISOString() : null,
++    ...(db ? { sem_resposta_30d: semResposta(agora, db), teto_sem_resposta_30d: SEM_RESPOSTA_30D || 'so mede' } : {}),
+   };
+ }
+ 
+-module.exports = { motivo, registrar, sinal, ehNova, ehResposta, lerEstado, gravarEstado, limites, aquecer, pausar, liberar, status, comeco, comecosNovos, DIAS_AQUECIMENTO };
++module.exports = { motivo, registrar, sinal, ehNova, ehResposta, lerEstado, gravarEstado, limites, aquecer, pausar, liberar, status, comeco, comecosNovos, semResposta, DIAS_AQUECIMENTO };
+ 
+ /**
+  * `node whatsapp-governador.js --testar`: sem rede e sem banco. Roda num processo filho com estado e
+@@ -506,6 +567,12 @@
+   } else if (tem('--liberar')) {
+     liberar();
+     console.log('pausa retirada');
++  } else if (tem('--sem-resposta')) {
++    // Le o banco da captura so para leitura (o mesmo caminho da convivencia).
++    const { DatabaseSync } = require('node:sqlite');
++    const db = new DatabaseSync(path.join(__dirname, 'whatsapp', 'dados', 'mensagens.db'), { readOnly: true });
++    console.log(JSON.stringify({ ...semResposta(Date.now(), db), teto: SEM_RESPOSTA_30D || 'so mede (OZAV_WPP_SEM_RESPOSTA_30D=0)' }));
++    db.close();
+   } else {
+     console.log(JSON.stringify(status(), null, 2));
+   }

@@ -1,0 +1,134 @@
+diff -ruN a/hooks/automacao/estado/conversa.js b/hooks/automacao/estado/conversa.js
+--- a/hooks/automacao/estado/conversa.js
++++ b/hooks/automacao/estado/conversa.js
+@@ -77,10 +77,32 @@
+   return s || null;
+ }
+ 
++// 14/10/2026, auditoria da nuvem: o json da sessao e do app, que o regrava (titulo, atividade). Lido no meio da
++// gravacao, o JSON.parse falhava, a conversa ficava sem titulo e o estado nao entrava, sem aviso. Guarda o ultimo
++// titulo bom de cada sessao e usa quando a leitura falha.
++const TITULOS = path.join(os.homedir(), '.claude', 'conversas', '.titulos.json');
++function lembrarTitulo(id, titulo) {
++  if (!id) return titulo;
++  const c = lerJson(TITULOS) || {};
++  if (!titulo) return c[id] || null;
++  if (c[id] !== titulo) {
++    c[id] = titulo;
++    const ks = Object.keys(c);
++    if (ks.length > 300) delete c[ks[0]];
++    try {
++      fs.mkdirSync(path.dirname(TITULOS), { recursive: true });
++      fs.writeFileSync(TITULOS + '.' + process.pid, JSON.stringify(c));
++      fs.renameSync(TITULOS + '.' + process.pid, TITULOS);
++    } catch { /* sem cache, segue */ }
++  }
++  return titulo;
++}
++
+ function quem(inp) {
+   const cwd = inp.cwd || process.cwd();
+   const s = sessaoDoApp(inp.session_id || process.env.CLAUDE_CODE_SESSION_ID);
+-  const titulo = s && s.title ? s.title : null;
++  const titulo = lembrarTitulo(process.env.CLAUDE_CODE_HOST_SESSION_ID || inp.session_id || process.env.CLAUDE_CODE_SESSION_ID,
++    s && s.title ? s.title : null);
+   const chave = chaveDe(titulo);
+   const projeto = projetoDe(cwd);
+   const pasta = projeto ? path.join(projeto, 'conversas') : path.join(os.homedir(), '.claude', 'conversas');
+@@ -126,8 +148,15 @@
+     if (est) {
+       let corpo = est.trim();
+       if (corpo.length > cfg.teto_conversa) {
+-        corpo = corpo.slice(0, cfg.teto_conversa) +
+-          '\n[cortado: o arquivo passou do teto de ' + cfg.teto_conversa + ' caracteres; leia o resto e reescreva mais curto]';
++        // 14/10/2026, auditoria da nuvem: o corte guardava o comeco e levava o fim. No 00.md real (4.153 car.) a
++        // "Ultima entrega" e a ultima secao e sobravam 92 de 245 caracteres dela: a linha "Antes da limpeza" saia pela
++        // metade. Agora essa secao vai inteira (no fim) e o corte sai do resto.
++        const m = corpo.match(/^## [ÚU]ltima entrega[^\n]*\n[\s\S]*?(?=^## |(?![\s\S]))/m);
++        const sec = m ? m[0].trim().slice(0, cfg.teto_conversa) : '';
++        const resto = m ? corpo.replace(m[0], '') : corpo;
++        corpo = resto.slice(0, Math.max(0, cfg.teto_conversa - sec.length)) +
++          '\n[cortado: o arquivo passou do teto de ' + cfg.teto_conversa + ' caracteres; leia o resto e reescreva mais curto]' +
++          (sec ? '\n\n' + sec : '');
+       }
+       p.push('\n## Onde esta conversa parou (' + q.arquivo + ')\n' + corpo);
+     } else {
+@@ -174,9 +203,11 @@
+     fs.readSync(fd, buf, 0, n, tam - n);
+     const linhas = buf.toString('utf8').split('\n');
+     for (let i = linhas.length - 1; i >= 0; i--) {
+-      if (linhas[i].includes('"isSidechain":true')) continue;
+-      const m = linhas[i].match(/"usage":\{"input_tokens":(\d+),"cache_creation_input_tokens":(\d+),"cache_read_input_tokens":(\d+)/);
+-      if (m) return Number(m[1]) + Number(m[2]) + Number(m[3]);
++      if (!linhas[i].includes('"usage"') || linhas[i].includes('"isSidechain":true')) continue;
++      // 14/10/2026, auditoria da nuvem: pelo JSON, nao pela ordem das chaves. Com outra ordem a regex achava 0 tokens
++      // e o aviso dos 100 mil sumia calado (com a compactacao desligada, so ele segura o contexto).
++      let u; try { u = JSON.parse(linhas[i]).message.usage; } catch { continue; }
++      if (u && Number.isFinite(u.input_tokens)) return u.input_tokens + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
+     }
+   } catch { /* sem transcript, sem medida */ } finally { if (fd !== undefined) try { fs.closeSync(fd); } catch {} }
+   return 0;
+diff -ruN a/hooks/automacao/guarda/guarda.js b/hooks/automacao/guarda/guarda.js
+--- /dev/null
++++ b/hooks/automacao/guarda/guarda.js
+@@ -0,0 +1,33 @@
++// GUARDA DAS PASTAS PROTEGIDAS (14/10/2026, auditoria da nuvem, tarefa 16): hook PreToolUse do Bash.
++//
++// O settings.json nega o Read de ~/.ozav (chaves), veedha-dados (cliente PF da Veedha) e financas/originais. Mas o
++// "Bash(cat:*)" liberado, e o bypass que e o padrao, deixam ler o mesmo arquivo pelo terminal (cat, type, grep, head,
++// Get-Content, ssh "cat ~/.ozav/.env"): o conteudo entra na conversa e no transcript, que o backup do ~/.claude copia.
++// Este hook barra o comando que cita essas pastas. Nao muda o bypass: so esse comando para.
++//
++//   settings.json > hooks > PreToolUse: { "matcher": "Bash", "hooks": [{ "type": "command",
++//     "command": "node \"<HOME>/OneDrive/Claude/automacao/guarda/guarda.js\"", "timeout": 5 }] }
++//
++// Sai 2 com o motivo no stderr (o Claude Code bloqueia a ferramenta e mostra o motivo ao modelo). Script do motor que
++// le essas pastas por dentro (node coletar.js) passa: o hook olha so o texto do comando. Erro do proprio hook sai 0.
++const fs = require('fs');
++
++const PROTEGIDAS = [
++  [/(^|[\\/"'\s~])\.ozav([\\/"'\s]|$)/i, '~/.ozav (as chaves)'],
++  [/veedha-dados/i, 'veedha-dados (cliente pessoa fisica da Veedha)'],
++  [/financas[\\/]+originais/i, 'financas/originais (financas pessoais)'],
++];
++
++try {
++  const inp = JSON.parse(fs.readFileSync(0, 'utf8'));
++  const cmd = String((inp.tool_input && inp.tool_input.command) || '');
++  const achou = PROTEGIDAS.find(([re]) => re.test(cmd));
++  if (achou) {
++    process.stderr.write(`Bloqueado pela guarda: o comando cita ${achou[1]}, pasta que o settings.json nega para leitura. ` +
++      'Se precisar de um numero dali (quantas chaves, quantas linhas), peca ao dono ou use o script do motor que ja le a pasta.\n');
++    process.exit(2);
++  }
++} catch {
++  /* entrada ilegivel: deixa passar */
++}
++process.exit(0);
+diff -ruN a/hooks/claude-hooks/nonstop.sh b/hooks/claude-hooks/nonstop.sh
+--- a/hooks/claude-hooks/nonstop.sh
++++ b/hooks/claude-hooks/nonstop.sh
+@@ -18,13 +18,16 @@
+ input=$(cat)
+ 
+ # --- Extract session_id and stop_hook_active ---
+-# shellcheck disable=SC2154  # variables assigned via eval
+-eval "$(echo "$input" | python -c "
+-import sys, json
+-d = json.load(sys.stdin)
+-print(f'session_id={d.get(\"session_id\", \"default\")}')
+-print(f'stop_hook_active={str(d.get(\"stop_hook_active\", False)).lower()}')
+-" 2>/dev/null)"
++# 14/10/2026, auditoria da nuvem: sem python. No Windows o python/python3 do PATH pode ser o atalho da Microsoft
++# Store (nao roda, nao imprime nada): o session_id saia vazio, o modo virava "nonstop-.active", um so para todas as
++# conversas, e o stop_hook_active vazio desligava a trava contra laco. Aqui so bash, e sem eval.
++session_id=""; stop_hook_active=false
++re_sid='"session_id"[[:space:]]*:[[:space:]]*"([A-Za-z0-9_-]+)"'
++re_sha='"stop_hook_active"[[:space:]]*:[[:space:]]*true'
++[[ $input =~ $re_sid ]] && session_id=${BASH_REMATCH[1]}
++[[ $input =~ $re_sha ]] && stop_hook_active=true
++# sem session_id nao da para saber de quem e o modo: deixa parar
++[ -n "$session_id" ] || exit 0
+ 
+ # shellcheck disable=SC2154
+ active_file="$STATE_DIR/nonstop-${session_id}.active"

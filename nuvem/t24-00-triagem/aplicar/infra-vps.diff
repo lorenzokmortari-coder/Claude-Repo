@@ -1,0 +1,317 @@
+diff -ruN a/fred/fred-motor/backup.sh b/fred/fred-motor/backup.sh
+--- a/fred/fred-motor/backup.sh
++++ b/fred/fred-motor/backup.sh
+@@ -7,6 +7,16 @@
+ set -u
+ mkdir -p ~/backups
+ P=~/backups/fred-$(date +%Y%m%d).tgz
+-tar czf "$P.parcial" -C ~ fred-motor/dados fred-motor/.env fred-motor/segredos 2>/dev/null && mv "$P.parcial" "$P" && chmod 600 "$P"
++# 14/10/2026, auditoria da nuvem: tar com status 1 (arquivo mudou enquanto lia, log sendo escrito) nao trocava o pacote e o
++# dia ficava sem backup em silencio; falha de verdade (disco cheio, pasta sumida) tambem saia com status 0.
++tar czf "$P.parcial" -C ~ fred-motor/dados fred-motor/.env fred-motor/segredos 2>/dev/null
++st=$?
++if [ "$st" -le 1 ] && tar tzf "$P.parcial" >/dev/null 2>&1; then
++  mv "$P.parcial" "$P" && chmod 600 "$P"
++else
++  rm -f "$P.parcial"
++  echo "[$(date "+%F %T")] backup fred FALHOU (tar status $st ou pacote que nao abre); fica o de ontem" >> ~/fred-motor/dados/logs/backup.log
++  exit 1
++fi
+ ls -1t ~/backups/fred-*.tgz 2>/dev/null | tail -n +8 | xargs -r rm -f
+ echo "[$(date "+%F %T")] backup fred: $(du -h "$P" | cut -f1), $(tar tzf "$P" | grep -vc "/$") arquivos" >> ~/fred-motor/dados/logs/backup.log
+diff -ruN a/fred/fred-motor/rodar.sh b/fred/fred-motor/rodar.sh
+--- a/fred/fred-motor/rodar.sh
++++ b/fred/fred-motor/rodar.sh
+@@ -41,6 +41,21 @@
+ export PYTHONPATH="$HOME/opt/pylib${PYTHONPATH:+:$PYTHONPATH}"   # Pillow sem sudo (cards de story e carrossel, 23/09)
+ LOG="dados/logs/$(date +%Y-%m-%d).log"
+ { echo; echo "===== $(date '+%F %T %Z') · rodar.sh ${*:-}"; } >>"$LOG"
++# UMA RODADA POR VEZ (14/10/2026, auditoria da nuvem). Sem trava, o vigia de 5 em 5 min (e o vigia-conferir, no mesmo
++# minuto 12h45) e os directs de 30 em 30 min se sobrepunham quando uma rodada demora (video grande, modelo lento):
++# duas rodadas lendo o mesmo "ainda nao fiz" agendam o mesmo post ou respondem o mesmo direct. A trava e por familia
++# (vigia e vigia-conferir; comunidade e comunidade-directs; stories e stories-reel), espera ate 5 min e solta sozinha
++# se o processo morrer. Consulta (estado, teste, falhas) e pareamento nao travam.
++case "${1:-}" in
++  ''|estado|teste|falhas|wa-conectar|wa-grupos) : ;;
++  *)
++    mkdir -p dados/travas
++    exec 9>"dados/travas/${1%%-*}.lock"
++    if ! flock -w "${FRED_TRAVA_ESPERA_S:-300}" 9; then
++      echo "[$(date '+%F %T')] ${1} esperou 5 min a rodada anterior da familia ${1%%-*}; pulei" >>"$LOG"
++      exit 0
++    fi ;;
++esac
+ case "${1:-}" in
+   vigia)           python3 vigia.py >>"$LOG" 2>&1; c=$? ;;
+   vigia-conferir)  python3 vigia.py --conferir ${2:-} >>"$LOG" 2>&1; c=$? ;;
+diff -ruN a/ozav/deploy/backup.sh b/ozav/deploy/backup.sh
+--- a/ozav/deploy/backup.sh
++++ b/ozav/deploy/backup.sh
+@@ -96,6 +96,19 @@
+ 
+ # ---------- backup ----------
+ PACOTE="$DESTINO/estado-$HOJE.tgz"
++# SQLITE A QUENTE (14/10/2026, auditoria da nuvem). O tar copiava o mensagens.db com a captura escrevendo e sem o -wal:
++# o que ainda estava no WAL nao entrava, e pagina copiada no meio de uma escrita da pacote que abre mas mente.
++# O VACUUM INTO tira uma copia consistente (com o que esta no WAL); o tar leva a copia no lugar do original.
++FOTO=""
++if [ -f "$RAIZ/whatsapp/dados/mensagens.db" ]; then
++  FOTO=$(mktemp -d)
++  mkdir -p "$FOTO/whatsapp/dados"
++  if ! "$HOME/.local/node/bin/node" -e "const {DatabaseSync}=require('node:sqlite');new DatabaseSync(process.argv[1],{readOnly:true}).exec('VACUUM INTO \''+process.argv[2].replace(/'/g,\"''\")+'\'')" "$RAIZ/whatsapp/dados/mensagens.db" "$FOTO/whatsapp/dados/mensagens.db" 2>>"$LOG"; then
++    registrar "aviso: a copia consistente do mensagens.db falhou; vai o arquivo como esta"
++    rm -rf "$FOTO"
++    FOTO=""
++  fi
++fi
+ 
+ # --safe-links e --ignore-failed-read: o backup nao pode morrer porque um worker
+ # mexeu num arquivo no meio. Melhor um pacote com um arquivo a menos do que nenhum.
+@@ -105,15 +118,18 @@
+   .ozav \
+   $( [ -d "$HOME/whatsapp-auth" ] && echo whatsapp-auth ) \
+   -C "$RAIZ" \
+-  $( [ -f "$RAIZ/whatsapp/dados/mensagens.db" ] && echo whatsapp/dados/mensagens.db ) \
++  $( [ -z "$FOTO" ] && [ -f "$RAIZ/whatsapp/dados/mensagens.db" ] && echo whatsapp/dados/mensagens.db ) \
+   $( [ -d "$RAIZ/whatsapp/auth" ] && echo whatsapp/auth ) \
+   $( [ -f "$RAIZ/telegram/credenciais.json" ] && echo telegram/credenciais.json ) \
+   $( [ -f "$RAIZ/telegram/sessao.txt" ] && echo telegram/sessao.txt ) \
+   $( [ -f "$RAIZ/robos-desligados.json" ] && echo robos-desligados.json ) \
+   $( [ -f "$RAIZ/pen-numeros.json" ] && echo pen-numeros.json ) \
+-  $( ls "$RAIZ"/*.jsonl >/dev/null 2>&1 && echo *.jsonl ) \
++  $( for f in conduzir-config.json feriados.txt silencio.txt decidir-vistas.json plano-estado.json hunting-bc-estado.json fechamento-estado.json \
++      whatsapp-governador.json catraca-regras.json; do [ -f "$RAIZ/$f" ] && echo "$f"; done ) \
++  $( cd "$RAIZ" && ls *.jsonl 2>/dev/null ) \
+   -C "$MKT" \
+   $( [ -d "$MKT/estado" ] && echo estado ) \
++  $( [ -n "$FOTO" ] && echo "-C $FOTO whatsapp/dados/mensagens.db" ) \
+   2>/dev/null
+ 
+ 
+@@ -130,6 +146,14 @@
+ TAM=$(du -h "$PACOTE" | cut -f1)
+ N=$(tar tzf "$PACOTE" 2>/dev/null | grep -vc '/$')
+ registrar "backup ok: $(basename "$PACOTE") · $TAM · $N arquivos"
++[ -n "$FOTO" ] && rm -rf "$FOTO"
++# A PROVA TODO DIA (14/10/2026, auditoria da nuvem): o --restaurar existia, mas so rodava na mao (18 e 23/09). Agora roda no
++# pacote do dia; pacote que nao restaura sai do caminho (.ruim, para o R2 e o PC nao levarem) e vira status 1.
++if ! bash "$0" --restaurar "$PACOTE" > "$DESTINO/.prova-ultima.txt" 2>&1; then
++  mv "$PACOTE" "$PACOTE.ruim"
++  registrar "backup FALHOU na prova de restauracao: $(tail -1 "$DESTINO/.prova-ultima.txt")"
++  exit 1
++fi
+ 
+ # domingo vira semanal
+ if [ "$DIA_SEMANA" = "7" ]; then
+diff -ruN a/ozav/deploy/restaurar-estado.sh b/ozav/deploy/restaurar-estado.sh
+--- /dev/null
++++ b/ozav/deploy/restaurar-estado.sh
+@@ -0,0 +1,78 @@
++#!/bin/bash
++# RESTAURAR O ESTADO DA OZAV NO LUGAR CERTO (14/10/2026, auditoria da nuvem, tarefa 15).
++#
++# O backup.sh monta o pacote com tres raizes (-C ~, -C ~/ozav-crm, -C ~/ozav-marketing). O comando do
++# INFRAESTRUTURA ("tar xzf <pacote> -C ~") poe mensagens.db, telegram/, *.jsonl e estado/ na raiz da home:
++# os robos sobem sem historico, sem a sessao do Telegram e sem o que ja foi publicado, e ninguem percebe.
++# Este script abre o pacote numa pasta temporaria, roda a prova do proprio backup.sh e so entao copia cada
++# parte para a sua raiz. O que ja existia no destino fica como <nome>.antes-restaurar.
++#
++#   bash restaurar-estado.sh <estado-AAAAMMDD.tgz>           confere e restaura (com a captura parada)
++#   bash restaurar-estado.sh <estado-AAAAMMDD.tgz> --seco    so mostra o que faria
++#
++# Na VPS nova vem ANTES do deploy (sem ~/.ozav/.env o segredos.sh do deploy falha e o cron sobe sem os grupos):
++# copie do PC o pacote, este script e o backup.sh para a mesma pasta e rode daqui.
++#
++# Depois: na VPS nova, o deploy do PC (ele roda o segredos.sh); numa VPS que ja tem o deploy, segredos.sh e rodar.sh captura.
++set -u
++PACOTE="${1:-}"
++SECO="${2:-}"
++[ -f "$PACOTE" ] || { echo "uso: restaurar-estado.sh <estado-AAAAMMDD.tgz> [--seco]"; exit 2; }
++RAIZ="$HOME/ozav-crm"
++MKT="$HOME/ozav-marketing"
++
++# o mesmo pareamento em dois processos derruba a sessao (o 440 de 08/09): nada de restaurar com a captura de pe
++if pgrep -u "$(id -u)" -f "conectar\.js" >/dev/null 2>&1; then
++  echo "a captura esta de pe: pare os robos antes de restaurar"
++  exit 1
++fi
++
++TMP=$(mktemp -d)
++trap 'rm -rf "$TMP"' EXIT
++tar xzf "$PACOTE" -C "$TMP" || { echo "FALHA: o pacote nao abre"; exit 1; }
++# a prova: o backup.sh ao lado deste script (VPS nova, antes do deploy: os dois vieram do PC junto com o pacote)
++# ou o do deploy. Precisa do node em ~/.local/node.
++PROVA_SH="$(dirname "$0")/backup.sh"
++[ -f "$PROVA_SH" ] || PROVA_SH="$RAIZ/deploy/backup.sh"
++if [ -f "$PROVA_SH" ]; then
++  bash "$PROVA_SH" --restaurar "$PACOTE" >"$TMP.prova" 2>&1 || { echo "FALHA: o pacote nao passou na prova (backup.sh --restaurar):"; tail -3 "$TMP.prova"; rm -f "$TMP.prova"; exit 1; }
++  rm -f "$TMP.prova"
++else
++  echo "aviso: sem o backup.sh ao lado nem no deploy, restauro sem a prova"
++fi
++
++mover() { # parte (relativa ao pacote) -> destino absoluto
++  local o="$TMP/$1" d="$2"
++  [ -e "$o" ] || return 0
++  echo "  $1 -> $d"
++  [ -n "$SECO" ] && return 0
++  mkdir -p "$(dirname "$d")"
++  if [ -e "$d" ]; then
++    rm -rf "$d.antes-restaurar"
++    mv "$d" "$d.antes-restaurar"
++  fi
++  cp -a "$o" "$d"
++}
++
++# raiz 1: a home
++mover .ozav "$HOME/.ozav"
++mover whatsapp-auth "$HOME/whatsapp-auth"
++# raiz 2: ~/ozav-crm
++for x in whatsapp/dados/mensagens.db whatsapp/auth telegram/credenciais.json telegram/sessao.txt robos-desligados.json pen-numeros.json \
++         conduzir-config.json feriados.txt silencio.txt decidir-vistas.json plano-estado.json hunting-bc-estado.json fechamento-estado.json \
++         whatsapp-governador.json catraca-regras.json; do
++  mover "$x" "$RAIZ/$x"
++done
++for f in "$TMP"/*.jsonl; do
++  [ -e "$f" ] && mover "$(basename "$f")" "$RAIZ/$(basename "$f")"
++done
++# raiz 3: ~/ozav-marketing
++mover estado "$MKT/estado"
++
++if [ -n "$SECO" ]; then
++  echo "(seco: nada foi copiado)"
++  exit 0
++fi
++chmod 700 "$HOME/.ozav" 2>/dev/null
++find "$HOME/.ozav" -type f -exec chmod 600 {} + 2>/dev/null
++echo "restaurado. Proximo: VPS nova = o deploy do PC; VPS com deploy = bash ~/ozav-crm/deploy/segredos.sh e bash ~/ozav-crm/deploy/rodar.sh captura"
+diff -ruN a/ozav/deploy/rodar.sh b/ozav/deploy/rodar.sh
+--- a/ozav/deploy/rodar.sh
++++ b/ozav/deploy/rodar.sh
+@@ -200,9 +200,21 @@
+     exit 1
+   fi
+ elif ! flock -n 9; then
++  # TRAVA PRESA (14/10/2026, auditoria da nuvem): worker pendurado segura o flock para sempre. O "pulei" de cada
++  # rodada fazia o log andar (o vigia via vida) e o fiscal so le "terminou com status", cujo ultimo era o de
++  # antes de travar: ninguem via. Passado o teto (padrao 4 h; a ponte vai ate 150 min), cada "pulei" vira status 75.
++  DESDE="$(cat "$TRAVA.desde" 2>/dev/null)"
++  case "$DESDE" in ''|*[!0-9]*) DESDE=0 ;; esac
++  IDADE=$(( $(date +%s) - DESDE ))
++  if [ "$DESDE" -gt 0 ] && [ "$IDADE" -gt "${OZAV_TRAVA_MAX_S:-14400}" ]; then
++    echo "[$(date '+%F %T')] $TAREFA PRESA: a rodada anterior segura a trava ha $((IDADE / 60)) min" >> "$LOG"
++    echo "[$(date '+%F %T')] $TAREFA terminou com status 75" >> "$LOG"
++    exit 75
++  fi
+   echo "[$(date '+%F %T')] $TAREFA ja esta rodando; pulei" >> "$LOG"
+   exit 0
+ fi
++date +%s > "$TRAVA.desde"   # quando esta rodada pegou a trava (ver TRAVA PRESA, acima)
+ 
+ cd "$RAIZ"
+ 
+diff -ruN a/pc/vigiar-vps.js b/pc/vigiar-vps.js
+--- /dev/null
++++ b/pc/vigiar-vps.js
+@@ -0,0 +1,101 @@
++#!/usr/bin/env node
++/**
++ * VIGIA DE FORA DA VPS (14/10/2026, auditoria da nuvem, tarefa 15).
++ *
++ * Todo aviso do servidor sai do próprio servidor: Slack pelo token preso ao IP dele, WhatsApp pelas sessões
++ * guardadas nele. Se a VPS cai inteira (contrato que não renovou, disco cheio, kernel, Tailscale), ninguém avisa.
++ * Este roda no PC, de 30 em 30 min pelo Agendador de Tarefas, e olha a VPS de fora:
++ *   1. o painel do dono (porta 8778, só pela Tailscale) responde?
++ *   2. a página foi regerada há pouco? O cron do root a regera de hora em hora: o Last-Modified dela é o pulso
++ *      do cron e do root (cron parado, root sem disco ou node quebrado = página parada).
++ * Duas leituras ruins seguidas (1 h) = notificação no Windows e linha FALHA no log. Uma só não avisa (Wi-Fi do PC).
++ *
++ *   node vigiar-vps.js                                   URL do VPS_PAINEL_URL, ou http://<IP_TAILSCALE>:8778/
++ *   node vigiar-vps.js --url http://... --max-min 90 --estado arquivo.json --sem-aviso
++ *
++ * Sai 0 = ok · 1 = ruim pela primeira vez (só registra) · 2 = ruim de novo (avisou) · 3 = erro de uso.
++ * Sem dependência de npm. Não lê nada do servidor além do cabeçalho da página.
++ */
++'use strict';
++
++const fs = require('fs');
++const os = require('os');
++const path = require('path');
++const http = require('http');
++const { spawnSync } = require('child_process');
++
++function opcoes(argv) {
++  const o = { url: process.env.VPS_PAINEL_URL || 'http://<IP_TAILSCALE>:8778/', maxMin: 90, estado: path.join(os.homedir(), '.vigiar-vps.json'), semAviso: false, timeoutMs: 15000 };
++  for (let i = 0; i < argv.length; i++) {
++    const a = argv[i];
++    if (a === '--url') o.url = argv[++i];
++    else if (a === '--max-min') o.maxMin = Number(argv[++i]);
++    else if (a === '--estado') o.estado = argv[++i];
++    else if (a === '--timeout-ms') o.timeoutMs = Number(argv[++i]);
++    else if (a === '--sem-aviso') o.semAviso = true;
++    else throw new Error(`opcao desconhecida: ${a}`);
++  }
++  if (!/^http:\/\//.test(o.url) || o.url.includes('<')) throw new Error(`URL do painel nao configurada: ${o.url} (use --url ou VPS_PAINEL_URL)`);
++  if (!(o.maxMin > 0)) throw new Error('--max-min tem de ser positivo');
++  return o;
++}
++
++/** Uma leitura: { ok, motivo }. */
++function ler(url, maxMin, timeoutMs) {
++  return new Promise((resolve) => {
++    const req = http.get(url, { timeout: timeoutMs }, (res) => {
++      res.resume();
++      if (res.statusCode !== 200) return resolve({ ok: false, motivo: `painel respondeu ${res.statusCode}` });
++      const lm = Date.parse(res.headers['last-modified'] || '');
++      if (!Number.isFinite(lm)) return resolve({ ok: false, motivo: 'painel sem Last-Modified: nao da para saber se o cron gira' });
++      const min = Math.round((Date.now() - lm) / 60000);
++      if (min > maxMin) return resolve({ ok: false, motivo: `pagina parada ha ${min} min (o cron do root regera de hora em hora)` });
++      resolve({ ok: true, motivo: `pagina de ${min} min atras` });
++    });
++    req.on('timeout', () => req.destroy(new Error('sem resposta')));
++    req.on('error', (e) => resolve({ ok: false, motivo: `sem resposta (${e.code || e.message}): VPS, Tailscale ou painel fora` }));
++  });
++}
++
++function avisarNoWindows(texto) {
++  if (process.platform !== 'win32') return false;
++  const t = texto.replace(/'/g, "''");
++  const ps = `Add-Type -AssemblyName System.Windows.Forms; $n=New-Object System.Windows.Forms.NotifyIcon; $n.Icon=[System.Drawing.SystemIcons]::Warning; $n.Visible=$true; $n.ShowBalloonTip(20000,'VPS','${t}','Warning'); Start-Sleep 21; $n.Dispose()`;
++  return spawnSync('powershell', ['-NoProfile', '-Command', ps], { stdio: 'ignore', timeout: 30000 }).status === 0;
++}
++
++async function main() {
++  let o;
++  try {
++    o = opcoes(process.argv.slice(2));
++  } catch (e) {
++    console.error(e.message);
++    return 3;
++  }
++  let est = { ruins: 0 };
++  try {
++    est = JSON.parse(fs.readFileSync(o.estado, 'utf8'));
++  } catch {
++    /* primeira vez ou arquivo ilegivel: comeca do zero */
++  }
++  const r = await ler(o.url, o.maxMin, o.timeoutMs);
++  const agora = new Date().toISOString();
++  if (r.ok) {
++    fs.writeFileSync(o.estado, JSON.stringify({ ruins: 0, ultimoOk: agora }));
++    console.log(`${agora} ok: ${r.motivo}`);
++    return 0;
++  }
++  const ruins = (Number(est.ruins) || 0) + 1;
++  fs.writeFileSync(o.estado, JSON.stringify({ ruins, ultimoOk: est.ultimoOk || null, ultimoRuim: agora, motivo: r.motivo }));
++  if (ruins < 2) {
++    console.log(`${agora} ruim (1a vez, ainda nao aviso): ${r.motivo}`);
++    return 1;
++  }
++  const texto = `A VPS nao esta bem: ${r.motivo}. Ultimo ok: ${est.ultimoOk || 'nunca'}. Olhe o painel da Hostinger e a Tailscale.`;
++  console.log(`${agora} FALHA (${ruins}a seguida): ${texto}`);
++  if (!o.semAviso) avisarNoWindows(texto);
++  return 2;
++}
++
++if (require.main === module) main().then((c) => process.exit(c));
++module.exports = { ler, opcoes, main };

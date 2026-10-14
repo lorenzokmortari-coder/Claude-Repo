@@ -1,0 +1,635 @@
+{
+  "_leia": "Tarefa 20 da nuvem (14/10/2026). 30 PROPOSTAS de modelo de mensagem a cliente para a Veedha. Nenhuma vale antes de o Lorenzo aprovar, versao a versao. Cada modelo tem o corpo com campos entre chaves, um exemplo SINTETICO para rodar no portao, o contexto do executor da tarefa 14 e o veredito esperado: 'esperado' no config de teste (rodape de teste, como sera com o rodape oficial) e 'esperado_real' no config de hoje (rodape oficial vazio). Texto livre sai no maximo REVISAR (R38): so modelo aprovado em config/modelos.json sai LIVRE. 'candidato_livre' marca os de conversa pura que o portao aceita na carga como modelo (rodar.js confere).",
+  "estilo": "Abertura 'Bom dia {primeiroNome}! Tudo bem?' (pedido do Lorenzo em 11/10/2026; {primeiroNome} e o campo do motor para o primeiro nome do cadastro). A mensagem ja traz a acao concreta e termina com um empurrao para responder. Sem promessa de retorno, sem travessao, sem emoji. Trocar 'Bom dia' por 'Boa tarde' ou 'Boa noite' pela hora do envio e permitido (nao muda o veredito).",
+  "modelos": [
+    {
+      "id": "M01_documento_pendente",
+      "situacao": "Documento pendente no cadastro da XP",
+      "quando_usar": "A XP marcou documento pendente no cadastro do cliente.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Quem atualiza e o cliente, no ambiente da XP. Nunca pedir que o cliente mande o documento para o assessor.",
+      "regra": "Res. CVM 178, art. 3º, III (informacao sobre o servico do intermediario); LGPD art. 6º, III (minimizacao: o documento nao passa pelo assessor).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Passando pra lembrar que falta atualizar um documento do seu cadastro na XP. Quem atualiza e vc mesmo, direto no ambiente da XP. Se travar em alguma parte, me chama.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M02_endereco_no_cadastro",
+      "situacao": "A XP pediu a atualizacao do endereco",
+      "quando_usar": "Pedido de atualizacao de endereco no cadastro.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "O envio do comprovante e direto no ambiente da XP. O assessor nao recebe documento. A palavra \"comprovante\" tira o modelo da carga como LIVRE (o portao a le como assunto de dinheiro): fica \"endereco\".",
+      "regra": "Res. CVM 178, art. 3º, III; LGPD art. 6º, III.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? A XP pediu a atualizacao do seu cadastro, com o endereco. Quem atualiza e vc mesmo, direto no ambiente da XP. Se travar em alguma parte, me chama.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M03_perfil_de_investidor",
+      "situacao": "Perfil de investidor (suitability) vencendo ou vencido",
+      "quando_usar": "O Hub mostra o perfil perto da validade ou vencido. Antes disso, nenhuma recomendacao de produto sai para este cliente.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Quem responde o questionario e o cliente, no ambiente da XP. Nao sugerir resposta.",
+      "regra": "Res. CVM 30, art. 6º, III e art. 9º (perfil atualizado antes de recomendar).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Passando pra lembrar da atualizacao do seu perfil de investidor no cadastro da XP. Quem responde e vc mesmo, direto no ambiente da XP. Se travar em alguma parte, me chama.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M04_termo_de_ciencia",
+      "situacao": "Termo de ciencia (Anexo A) pendente",
+      "quando_usar": "Cliente sem o termo de ciencia da assessoria. Sem ele a XP nao executa ordem direcionada pelo assessor.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "O cliente da o ciente no ambiente da XP. O assessor nao preenche por ele.",
+      "regra": "Res. CVM 178, art. 37, §2º (termo antes da ordem) e art. 25, II (o assessor nao age pelo cliente).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Falta vc dar o ciente no termo da XP que explica como funciona a assessoria. Fica no ambiente da XP e leva poucos minutos. Se tiver qualquer duvida sobre o termo, me chama que a gente conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "semtermo",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": false
+    },
+    {
+      "id": "M05_boas_vindas",
+      "situacao": "Conta aberta, primeiro contato",
+      "quando_usar": "Cliente novo com conta aberta na XP pelo escritorio.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "diaDaSemana": "dia proposto",
+        "hora": "HH:MM"
+      },
+      "nunca_trocar": "Sem produto e sem numero na primeira mensagem.",
+      "regra": "Res. CVM 178, art. 3º, I e §1º (prospeccao identificando o intermediario: vem no rodape).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Feliz de comecar esse trabalho com vc. Queria marcar uma conversa pra entender os seus objetivos. {diaDaSemana} as {hora} funciona? Se nao der, me fala outro horario.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "diaDaSemana": "quinta-feira",
+        "hora": "10:00"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M06_reuniao_de_revisao",
+      "situacao": "Reuniao de revisao periodica",
+      "quando_usar": "Revisao do semestre ou do ano, sem pauta de produto definida.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "diaDaSemana": "dia proposto",
+        "hora": "HH:MM"
+      },
+      "nunca_trocar": "Nao antecipar recomendacao na mensagem de convite.",
+      "regra": "Res. CVM 178, art. 3º, III.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Queria marcar a nossa conversa de revisao. {diaDaSemana} as {hora} funciona pra vc? Se nao der, me fala outro horario.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "diaDaSemana": "quinta-feira",
+        "hora": "10:00"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M07_confirmar_reuniao",
+      "situacao": "Lembrete no dia da reuniao",
+      "quando_usar": "Manha do dia de uma conversa marcada.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "hora": "HH:MM"
+      },
+      "nunca_trocar": "So a hora muda.",
+      "regra": "Res. CVM 178, art. 3º, III.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Passando pra confirmar a nossa conversa de hoje as {hora}. Se nao der, me fala outro horario.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "hora": "10:00"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M08_remarcar_reuniao",
+      "situacao": "Remarcar conversa",
+      "quando_usar": "O assessor precisou mudar o horario combinado.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "diaDaSemana": "novo dia",
+        "hora": "HH:MM"
+      },
+      "nunca_trocar": "Sem justificativa que cite mercado ou produto.",
+      "regra": "Res. CVM 178, art. 3º, III.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Queria passar a nossa conversa pra {diaDaSemana} as {hora}. Se nao der, me fala outro horario.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "diaDaSemana": "quinta-feira",
+        "hora": "10:00"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M09_depois_da_reuniao",
+      "situacao": "Agradecimento depois da conversa",
+      "quando_usar": "Mesmo dia ou dia seguinte a uma reuniao.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Nao resumir por escrito a carteira nem o que foi recomendado: resumo da carteira e extrato (art. 25, VII).",
+      "regra": "Res. CVM 178, art. 25, VII.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Obrigado pela conversa. Se ficou alguma duvida, me responde aqui que a gente conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M10_cliente_sumido",
+      "situacao": "Cliente sem contato ha meses",
+      "quando_usar": "Regua de relacionamento: sem conversa ha mais de um trimestre.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Pergunta sobre planos, nunca sobre a carteira.",
+      "regra": "Res. CVM 178, art. 3º, I e III.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Faz um tempo que a gente nao conversa. Queria saber se mudou alguma coisa nos seus planos. Me fala um horario bom pra gente conversar?",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M11_retorno_de_ligacao",
+      "situacao": "Ligacao perdida do cliente",
+      "quando_usar": "O cliente ligou e o assessor nao atendeu.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Ordem por ligacao so no canal gravado da XP. Fica fora da carga LIVRE: a lista fechada de pedidos le \"vi a sua ligacao\" como pedido (testadas 5 redacoes).",
+      "regra": "Res. CVM 35, art. 14 (dialogo em sistema de gravacao).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Vi a sua ligacao e nao consegui atender. Me fala um horario bom que eu te ligo.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": false
+    },
+    {
+      "id": "M12_informe_de_rendimentos",
+      "situacao": "Informe para o imposto de renda disponivel",
+      "quando_usar": "Fevereiro e marco, quando a XP libera o informe.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Nao mandar o informe nem os valores: o informe e da XP.",
+      "regra": "Res. CVM 178, art. 25, VII (o assessor nao envia extrato; aponta o canal da XP).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? O seu relatorio para o imposto de renda ja esta disponivel na plataforma da XP. Se travar em alguma parte, me chama.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": true
+    },
+    {
+      "id": "M13_ausencia_do_assessor",
+      "situacao": "Assessor fora (ferias, viagem)",
+      "quando_usar": "Antes de um periodo fora.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "data": "DD/MM da volta"
+      },
+      "nunca_trocar": "O canal no periodo e a central da XP, nunca outra pessoa sem credenciamento.",
+      "regra": "Res. CVM 178, art. 25, IV e V (nao delegar a quem nao e assessor contratado).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Vou ficar fora ate {data}. Nesse periodo, qualquer coisa urgente da sua conta e direto com a central da XP. Na volta te procuro.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "data": "20/11"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "REVISAR",
+      "candidato_livre": false
+    },
+    {
+      "id": "M14_vencimento_reaplicar",
+      "situacao": "Vencimento de titulo, com recomendacao de onde aplicar",
+      "quando_usar": "Titulo do cliente vence nos proximos dias e o perfil esta valido.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto_vencendo": "nome do produto que vence (sem valor)",
+        "data": "DD/MM do vencimento",
+        "produto_destino": "produto da prateleira da XP adequado ao perfil"
+      },
+      "nunca_trocar": "Sem valor, sem taxa, sem rentabilidade passada e sem adjetivo sobre o produto destino. O produto destino tem de ser da classe permitida para o perfil.",
+      "regra": "Res. CVM 30, art. 6º (perfil valido); Res. CVM 178, art. 25, III (recomendar sim, analisar nao) e VII (sem valor da posicao).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? O seu {produto_vencendo} vence dia {data}. Minha recomendacao e aplicar esse valor em {produto_destino}, que esta na prateleira da XP. Me responde aqui se faz sentido pra vc que eu te ligo e explico os detalhes.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto_vencendo": "CDB do Banco Exemplo",
+        "data": "20/11",
+        "produto_destino": "LCA do Banco Modelo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M15_vencimento_usar_ou_aplicar",
+      "situacao": "Vencimento, cliente pode precisar do dinheiro",
+      "quando_usar": "Titulo vence e nao se sabe se o cliente vai usar o dinheiro.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto_vencendo": "produto que vence",
+        "data": "DD/MM",
+        "produto_destino": "produto da prateleira da XP adequado ao perfil"
+      },
+      "nunca_trocar": "As duas opcoes ficam lado a lado; nenhuma pressao.",
+      "regra": "Res. CVM 30, art. 6º; Res. CVM 178, art. 25, VII.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? O seu {produto_vencendo} vence dia {data}. Se vc for usar esse dinheiro, nao precisa fazer nada: o valor fica na sua conta da XP. Se nao for usar, minha recomendacao e aplicar em {produto_destino}. Me responde aqui qual dos dois.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto_vencendo": "CDB do Banco Exemplo",
+        "data": "20/11",
+        "produto_destino": "LCA do Banco Modelo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M16_troca_com_custo",
+      "situacao": "Vender X e aplicar em Y (troca)",
+      "quando_usar": "Recomendacao de troca de produto, com o custo total ja levantado na simulacao da XP.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto_origem": "o que vender",
+        "produto_destino": "onde aplicar",
+        "custo_total": "custo total da troca, da simulacao da XP (vai em fonteDeNumeros)"
+      },
+      "nunca_trocar": "A frase do custo total, com IR, corretagem e taxa de saida, e obrigatoria e o numero tem de sair da simulacao da XP (fonte declarada). Sem ela a troca barra (R20).",
+      "regra": "Res. CVM 30, art. 3º, §5º (custo total da troca); Res. CVM 35, art. 26-D, I (conflito da remuneracao).",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Minha recomendacao e vender {produto_origem} e aplicar em {produto_destino}. Custo total da troca, ja com IR, corretagem e taxa de saida: {custo_total}. Me responde aqui se quer seguir que eu te ligo pra explicar.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto_origem": "o fundo Exemplo Acoes",
+        "produto_destino": "a LCA do Banco Modelo",
+        "custo_total": "R$ 87,40"
+      },
+      "contexto": "cliente",
+      "extra": {
+        "temCustoTotal": true,
+        "fonteDeNumeros": "Simulacao da XP: custo total da troca R$ 87,40"
+      },
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M17_fim_de_carencia_manter",
+      "situacao": "Fim de carencia, recomendacao de manter",
+      "quando_usar": "Carencia do produto termina e a recomendacao e nao mexer.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto": "produto com carencia",
+        "data": "DD/MM"
+      },
+      "nunca_trocar": "Nao justificar com rentabilidade nem comparar com outro produto.",
+      "regra": "Res. CVM 30, art. 6º; Res. CVM 178, art. 25, III.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? A carencia do seu {produto} termina dia {data}. A partir dai o resgate fica livre. Minha recomendacao e manter onde esta. Se vc estiver pensando em resgatar, me responde aqui antes que a gente conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto": "LCI do Banco Exemplo",
+        "data": "20/11"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M18_fim_de_carencia_trocar",
+      "situacao": "Fim de carencia, recomendacao de resgatar e aplicar em outro",
+      "quando_usar": "Carencia termina e a recomendacao e trocar, com custo levantado.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto": "produto com carencia",
+        "data": "DD/MM",
+        "produto_destino": "produto da prateleira",
+        "custo_total": "custo total da simulacao da XP"
+      },
+      "nunca_trocar": "Custo total obrigatorio, da simulacao da XP. Sem \"seu\"/\"sua\" na mensagem: posse junto de qualquer valor barra como extrato (R14), e o custo total e um valor.",
+      "regra": "Res. CVM 30, art. 3º, §5º e art. 6º.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? A carencia da {produto} termina dia {data}. Minha recomendacao e resgatar e aplicar em {produto_destino}. Custo total da troca, ja com IR e taxas: {custo_total}. Me responde aqui se quer seguir que eu te ligo pra explicar.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto": "LCI do Banco Exemplo",
+        "data": "20/11",
+        "produto_destino": "a LCA do Banco Modelo",
+        "custo_total": "R$ 41,10"
+      },
+      "contexto": "cliente",
+      "extra": {
+        "temCustoTotal": true,
+        "fonteDeNumeros": "Simulacao da XP: custo total da troca R$ 41,10"
+      },
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M19_aporte_recebido",
+      "situacao": "Aporte caiu na conta da XP",
+      "quando_usar": "O dinheiro novo do cliente aparece na conta da XP.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto_destino": "produto da prateleira adequado ao perfil"
+      },
+      "nunca_trocar": "Nunca dizer que o assessor recebeu o dinheiro: ele esta na conta do cliente na XP. Sem o valor.",
+      "regra": "Res. CVM 178, art. 25, I (o assessor nao recebe recurso) e VII (sem valor); Res. CVM 30, art. 6º.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? O seu aporte ja aparece na sua conta da XP. Minha recomendacao e aplicar em {produto_destino}. Me responde aqui se faz sentido que eu te explico como fazer pelo ambiente da XP.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto_destino": "LCA do Banco Modelo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M20_saldo_parado",
+      "situacao": "Saldo em conta sem aplicacao",
+      "quando_usar": "Ha saldo livre na conta da XP ha alguns dias.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto_destino": "produto da prateleira adequado ao perfil"
+      },
+      "nunca_trocar": "Nunca escrever o valor do saldo (art. 25, VII). Sem pressa nem 'esta perdendo dinheiro'.",
+      "regra": "Res. CVM 178, art. 25, VII; Res. CVM 30, art. 6º; ANBIMA art. 64, IV.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Tem um saldo sem aplicacao na sua conta da XP. Minha recomendacao e aplicar em {produto_destino}. Me responde aqui se faz sentido que eu te ligo e explico os detalhes.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto_destino": "LCA do Banco Modelo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M21_resgate_pedido",
+      "situacao": "Cliente pediu resgate",
+      "quando_usar": "O resgate aparece no Hub.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto": "produto resgatado"
+      },
+      "nunca_trocar": "O dinheiro fica na conta do cliente na XP. Sem valor e sem prazo inventado.",
+      "regra": "Res. CVM 178, art. 25, I e VII.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Vi que vc pediu o resgate do {produto}. O valor cai na sua conta da XP no prazo do produto. Se a ideia for usar o dinheiro em outro investimento, me responde aqui antes que a gente conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto": "CDB do Banco Exemplo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M22_cupom_pago",
+      "situacao": "Cupom ou juros pagos",
+      "quando_usar": "Pagamento de cupom de titulo ou juros na conta.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto": "titulo que pagou",
+        "produto_destino": "produto da prateleira adequado ao perfil"
+      },
+      "nunca_trocar": "Sem o valor do cupom. Nao usar 'reinvestir': o portao le como troca e exige custo total.",
+      "regra": "Res. CVM 178, art. 25, VII; Res. CVM 30, art. 6º.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Os juros do seu {produto} foram pagos hoje na sua conta da XP. Minha recomendacao e aplicar esse valor em {produto_destino}. Me responde aqui se quer seguir que eu te ligo.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto": "titulo do Banco Exemplo",
+        "produto_destino": "LCA do Banco Modelo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M23_dividendos",
+      "situacao": "Dividendos ou rendimentos de FII pagos",
+      "quando_usar": "Pagamento de proventos na conta.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto_destino": "produto da prateleira adequado ao perfil"
+      },
+      "nunca_trocar": "Sem valor, sem nome de acao e sem comentario sobre a empresa.",
+      "regra": "Res. CVM 178, art. 25, III e VII; Res. CVM 20, art. 2º.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Caiu hoje um pagamento de dividendos na sua conta da XP. Minha recomendacao e aplicar esse valor em {produto_destino}. Me responde aqui se faz sentido que eu te ligo.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto_destino": "LCA do Banco Modelo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M24_aniversario_de_aplicacao",
+      "situacao": "Aniversario de aplicacao",
+      "quando_usar": "Produto com data de aniversario que muda liquidez ou rendimento (previdencia, poupanca, LCI com carencia).",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto": "produto",
+        "data": "DD/MM"
+      },
+      "nunca_trocar": "Sem dizer quanto rendeu nem quanto 'perde' resgatando antes.",
+      "regra": "Res. CVM 178, art. 25, III e VII.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? O seu {produto} faz aniversario de aplicacao dia {data}. Minha recomendacao e nao resgatar antes dessa data. Se vc estiver precisando do dinheiro, me responde aqui que a gente conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto": "plano de previdencia PGBL Exemplo",
+        "data": "20/11"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M25_copom",
+      "situacao": "Mudanca na Selic",
+      "quando_usar": "Dia seguinte a uma decisao do Copom.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "link_xp": "link da analise publicada pela XP",
+        "diaDaSemana": "dia",
+        "hora": "HH:MM"
+      },
+      "nunca_trocar": "Nada de previsao nem leitura propria do efeito na carteira (analise, art. 25, III). So o link da XP e o convite.",
+      "regra": "Res. CVM 178, art. 25, III; Res. CVM 20, arts. 1º e 2º.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? O Copom divulgou ontem a decisao sobre a Selic. A XP publicou a leitura dela neste link: {link_xp}. Queria marcar uma conversa rapida pra ver se muda alguma coisa nos seus planos. {diaDaSemana} as {hora} funciona?",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "link_xp": "https://conteudo.xpi.com.br/exemplo",
+        "diaDaSemana": "quinta-feira",
+        "hora": "10:00"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M26_come_cotas",
+      "situacao": "Come-cotas de maio e novembro",
+      "quando_usar": "Ultima semana de maio e de novembro, para quem tem fundo.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "Sem valor do imposto e sem dizer quanto o cliente vai pagar.",
+      "regra": "Res. CVM 178, art. 25, VII; Res. CVM 30, art. 6º.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? No fim do mes tem o come-cotas dos fundos. E automatico e vc nao precisa fazer nada. Se quiser entender como funciona nos seus fundos, me responde aqui que a gente marca uma conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M27_objetivo_com_data",
+      "situacao": "Cliente vai precisar do dinheiro numa data",
+      "quando_usar": "O cliente avisou que vai usar parte do dinheiro (viagem, imovel).",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "data": "DD/MM",
+        "produto_liquidez": "produto de liquidez diaria da prateleira"
+      },
+      "nunca_trocar": "Sem valor e sem prometer que o dinheiro estara disponivel: falar do resgate, nao do resultado.",
+      "regra": "Res. CVM 30, art. 6º; ANBIMA art. 64, IV.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Vc comentou que vai precisar de parte do dinheiro em {data}. Minha recomendacao e deixar essa parte em {produto_liquidez}, que tem resgate diario. Me responde aqui se faz sentido que eu te ligo e explico.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "data": "20/11",
+        "produto_liquidez": "o fundo DI Exemplo"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M28_produto_novo_na_xp",
+      "situacao": "Produto novo na prateleira da XP",
+      "quando_usar": "Campanha de produto, so para clientes com perfil compativel e valido.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "produto": "produto novo",
+        "link_material": "link do material tecnico da XP"
+      },
+      "nunca_trocar": "Sem taxa no texto (taxa exige os avisos do art. 78 e o link) e sem adjetivo. O link do material da XP fica.",
+      "regra": "Res. CVM 30, art. 6º; ANBIMA arts. 64, IV e 67.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? A XP abriu {produto}. O material completo da XP esta aqui: {link_material}. Minha recomendacao e olhar com calma e, se fizer sentido, a gente conversa. Me responde aqui que eu te ligo.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "produto": "a LCA do Banco Modelo",
+        "link_material": "https://conteudo.xpi.com.br/exemplo-material"
+      },
+      "contexto": "cliente",
+      "extra": {
+        "urlMaterialTecnico": "https://conteudo.xpi.com.br/exemplo-material"
+      },
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M29_como_transferir",
+      "situacao": "Cliente pergunta como mandar dinheiro para a XP",
+      "quando_usar": "Resposta a pergunta do cliente sobre deposito.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro"
+      },
+      "nunca_trocar": "O dinheiro vai do banco do cliente para a conta dele na XP, no nome dele. Nunca conta ou chave do assessor, do escritorio ou de terceiro. \"Pra colocar dinheiro na XP ... para a conta\" foi lido como troca (R20): nao usar. No config de hoje saia REVISAR sem rodape: a dispensa de conversa pura nao conhecia deposito, pix, TED, transferencia nem boleto (patch 01).",
+      "regra": "Res. CVM 178, art. 25, I.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? Os dados pra depositar na sua conta da XP ficam no ambiente da XP, no seu nome. O deposito sai do seu banco direto pra la. Se travar em alguma parte, me chama.",
+      "exemplo": {
+        "primeiroNome": "Cliente"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    },
+    {
+      "id": "M30_relatorio_da_xp",
+      "situacao": "Relatorio de research da XP sobre tema da carteira",
+      "quando_usar": "A XP publicou um relatorio que interessa ao cliente. Repasse integro, so o link.",
+      "campos": {
+        "primeiroNome": "primeiro nome do cadastro",
+        "link_relatorio": "link do relatorio da XP"
+      },
+      "nunca_trocar": "So o link, sem resumir nem comentar o relatorio (resumo com juizo e analise propria, art. 25, III; ANBIMA art. 71, II). No config de hoje sai REVISAR sem rodape por um furo da dispensa de conversa pura (\"renda fixa\" nao esta na lista dela): patch 01.",
+      "regra": "Res. CVM 20, arts. 2º e 20; ANBIMA art. 71, II.",
+      "corpo": "Bom dia {primeiroNome}! Tudo bem? A XP publicou um relatorio novo sobre renda fixa, segue o link: {link_relatorio}. Depois de ler, se quiser, me responde aqui que a gente conversa.",
+      "exemplo": {
+        "primeiroNome": "Cliente",
+        "link_relatorio": "https://conteudo.xpi.com.br/exemplo-relatorio"
+      },
+      "contexto": "cliente",
+      "esperado": "REVISAR",
+      "esperado_real": "BLOQUEADO",
+      "candidato_livre": false
+    }
+  ]
+}

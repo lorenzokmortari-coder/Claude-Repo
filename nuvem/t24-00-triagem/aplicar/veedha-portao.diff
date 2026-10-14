@@ -1,0 +1,150 @@
+diff -ruN a/lib/portao.js b/lib/portao.js
+--- a/lib/portao.js
++++ b/lib/portao.js
+@@ -339,7 +339,7 @@
+ 
+ /** (c) Produto nominado: dispara o suitability. "fundo garantidor" é tirado antes. */
+ const PRODUTO = new RegExp(
+-  `\\b(?:${PRODUTO_VARIANTE}|lig|lf|debenture|debentures|selic|ipca|fundos?|fiis?|acao|acoes|papeis|previdencia|pgbl|vgbl|multimercado|renda fixa|renda variavel|credito privado|estruturada|estruturado|cripto\\w*|bitcoin|cotas?|carteira administrada|oferta publica|letra financeira|ntn[- ]?b|ltn|lft|poupanca|${TICKER}|${EMPRESAS})\\b|${EMPRESA_COM_ARTIGO}`
++  `\\b(?:${PRODUTO_VARIANTE}|lig|lf|debenture|debentures|selic|ipca|fundos?|fiis?|acao|acoes|papeis|previdencia|pgbl|vgbl|multimercado|renda fixa|renda variavel|credito privado|estruturada|estruturado|cripto\\w*|bitcoin|cotas?|carteira administrada|oferta publica|letra financeira|ntn[- ]?b|ltn|lft|poupanca|fidcs?|fips?|letras? de credito (?:imobiliari[oa]|do agronegocio|do agro|agricola)|certificados? de recebiveis|titulos? (?:publicos?|do governo|do tesouro)|${TICKER}|${EMPRESAS})\\b|${EMPRESA_COM_ARTIGO}` // 14/10/2026 (red team da nuvem, T14): produto por extenso e FIDC/FIP
+ );
+ 
+ /**
+@@ -363,12 +363,15 @@
+   { rotulo: 'recomendacao em ingles', re: /\b(strong buy|strong sell|buy|sell|outperform|underperform|overweight|underweight|top pick|top picks)\b/ },
+   { rotulo: 'projecao de preco', re: /\b(vai|vao|deve|devem|tende a|tendem a|ta pra|esta pra|pronta pra|pronto pra|prontas pra|prontos pra|prestes a) (?:se )?(subir|cair|disparar|despencar|bater|dobrar|render mais|destravar|decolar|derreter|voar|bombar|explodir|estourar|afundar|desabar|valorizar|desvalorizar|andar)\b/ },
+   { rotulo: 'movimento de preco com intensidade', re: /\b(sobe|subindo|voa|voando|dispara|disparando|despenca|despencando|derrete|derretendo|bomba|bombando|decola|decolando) (forte|muito|bastante|demais)\b|\bta voando\b|\bso sobe\b|\bso vai subir\b/ },
++  // 14/10/2026 (red team da nuvem, T14): ranking proprio e comparacao em giria.
++  { rotulo: 'ranking proprio ("o melhor CDB da XP", "nenhum banco paga tanto")', re: /\bo melhor (?:cdb|cdbs|fundo|fundos|titulo|titulos|produto|produtos|investimento|investimentos|papel|ativo|ativos|fii|fiis|lci|lca|cri|cra|debenture)\b|\b(?:e|eh|esta entre) (?:o|os) (?:melhor|melhores) (?:da|do|dos) (?:plataforma|mercado|xp|prateleira)\b|\bnenhum (?:banco|fundo|titulo|produto|cdb|emissor) (?:paga|rende|entrega) (?:tanto|mais)\b/ },
++  { rotulo: 'comparacao em giria ("humilha a poupanca", "deixa o CDI no chinelo")', re: /\b(?:humilha|humilhando|atropela|engole|esmaga) (?:a|o) (?:poupanca|cdi|selic|ipca|inflacao|ibovespa|ibov|mercado|bolsa)\b|\bdeixa (?:a|o) (?:poupanca|cdi|selic|ipca|inflacao|ibovespa|ibov|mercado) no chinelo\b|\b(?:uma vez e meia|1,5 vez(?:es)?) (?:a|o) (?:poupanca|cdi|selic|ipca|inflacao)\b/ },
+   { rotulo: 'comparacao entre ativos', re: /\b(melhor|pior|melhores|piores|mais rentavel|menos rentavel|mais atrativo|mais atrativa|menos atrativo|menos atrativa|ganha) (que|do que)\b/ },
+   { rotulo: 'comparacao de retorno', re: /\b(paga|pagando|pagano|rende|rendendo|rendeno|entrega|entregando) (bem |muito |um pouco |bastante )?(mais|menos) (que|do que)\b/ },
+-  { rotulo: 'comparacao por multiplo', re: /\b(paga|pagando|pagano|rende|rendendo|rendeno|entrega|entregando|da|dando) (o dobro|o triplo|duas vezes mais|tres vezes mais)\b/ },
++  { rotulo: 'comparacao por multiplo', re: /\b(paga|pagando|pagano|rende|rendendo|rendeno|entrega|entregando|da|dando) (o dobro|o triplo|(?:duas|2) vezes mais|(?:tres|3) vezes mais)\b/ }, // 14/10/2026 (red team da nuvem, T14): o porExtenso troca duas por 2 antes
+   { rotulo: 'comparacao com referencia de mercado', re: /\b(acima|abaixo|alem|aquem) (do|da|de|dos|das) (cdi|selic|ipca|ibovespa|ibov|media|mercado|inflacao|poupanca|benchmark|indice|concorrencia|pares)\b/ },
+   { rotulo: 'comparacao com referencia de mercado', re: /\b(bate|bateu|batendo|bater|supera|superou|superando|superar|perde|perdeu|perdendo|ganha|ganhou|ganhando) (do|da|para o|para a|pro|pra|o|a) (cdi|selic|ipca|ibovespa|ibov|inflacao|poupanca|media|benchmark)\b/ },
+-  { rotulo: 'comparacao com referencia de mercado', re: /\b(o dobro|o triplo|a metade|duas vezes|tres vezes) (d[oa]|que [oa]) (poupanca|cdi|selic|ipca|inflacao|mercado|media|banco|bancos)\b/ },
++  { rotulo: 'comparacao com referencia de mercado', re: /\b(o dobro|o triplo|a metade|(?:duas|2) vezes|(?:tres|3) vezes) (d[oa]|que [oa]) (poupanca|cdi|selic|ipca|inflacao|mercado|media|banco|bancos)\b/ },
+   { rotulo: 'qualificacao de desempenho', re: /\b(consistentemente|consistencia de retorno|historico solido|resiliente|entregando bem|tem entregado bem)\b/ },
+   { rotulo: 'qualificacao de taxa', re: /\b(taxa|rentabilidade|retorno|premio|cupom|remuneracao) (bem |muito |bastante |super )?(gorda|gordo|salgada|generosa|atrativa|interessante|excelente|otima|espetacular|imperdivel)\b/ },
+   { rotulo: 'qualificacao de taxa', re: /\b(paga|pagando|pagano|rende|rendendo|rendeno|rendneo) (bem|muito bem|bem demais|muito|pouco|mal|uma mixaria|mixaria|quase nada|uma merreca|merreca)\b/ },
+@@ -441,6 +444,8 @@
+  * POSSE sem valor, numa frase financeira = REVISAR.
+  */
+ const EXTRATO_FORTE = [
++  // 14/10/2026 (red team da nuvem, T14): print, foto ou resumo da carteira e extrato confeccionado e enviado pelo assessor, mesmo sem numero.
++  { rotulo: 'print, foto ou resumo da posicao do cliente', re: /\b(print|prints|printscreen|foto|fotos|captura|screenshot|resumo|resuminho|planilha|tabela)( da tela)? d[aoe]s? (sua|seu|suas|seus|tua|teu) (carteira|carteiras|posicao|posicoes|extrato|extratos|saldo|patrimonio|investimentos|aplicacoes)\b/ },
+   { rotulo: 'posicao ou saldo do cliente', re: /\b(seu|sua|seus|suas|teu|tua|teus|tuas) (extrato|extratos|saldo|saldos|custodia|patrimonio|posicao|posicoes|preco medio|alocacao atual)\b/ },
+   { rotulo: 'quanto o cliente tem', re: /\bquanto ((voce|o senhor|a senhora|voces) )?(tem|possui|investiu|aplicou|esta com)\b/ },
+   { rotulo: 'quanto o cliente tem', re: /\b(voce|o senhor|a senhora|voces|tu)( que)? (tem|possui|carrega|esta com|ta com|acumulou|juntou|ganhou|perdeu|lucrou|aplicou|investiu|deixou|colocou|guardou|mantem|manteve|largou|deixa) (uns |umas |cerca de |quase |mais de |perto de |menos de |aproximadamente |por volta de |tipo )?(r\$ ?|us\$ ?)?\d/ },
+@@ -449,7 +454,7 @@
+   { rotulo: 'rentabilidade da conta do cliente', re: /\b(seu|sua|teu|tua) [a-z]+ (esta|vem|vinha|vinham|ta) rendendo\b/ },
+   { rotulo: 'rentabilidade da carteira do cliente', re: /\brentabilidade (da|do) (sua|seu|tua|teu) (carteira|conta|portfolio|posicao)\b/ },
+   { rotulo: 'resultado do cliente', re: /\b(seu|sua|teu|tua) (retorno|lucro|prejuizo|resultado|ganho) (foi|esta|acumulado|no ano|no mes|no periodo)\b/ },
+-  { rotulo: 'composicao da posicao do cliente', re: /\b(metade|a maior parte|boa parte|quase tudo|tudo|parte|um terco|dois tercos|\d+%) (do que|daquilo que) (voce|o senhor|a senhora|tu) (tem|aplicou|investiu|guardou)\b|\b(metade|a maior parte|boa parte|quase tudo|\d+%) (do seu|da sua|do teu|da tua) (patrimonio|dinheiro|carteira|capital|recurso|investimento|aplicacao)\b/ },
++  { rotulo: 'composicao da posicao do cliente', re: /\b(metade|a maior parte|boa parte|quase tudo|tudo|parte|um terco|(?:dois|2) tercos|\d+%) (do que|daquilo que) (voce|o senhor|a senhora|tu) (tem|aplicou|investiu|guardou)\b|\b(metade|a maior parte|boa parte|quase tudo|\d+%) (do seu|da sua|do teu|da tua) (patrimonio|dinheiro|carteira|capital|recurso|investimento|aplicacao)\b/ },
+ ];
+ 
+ const EXTRATO_FRACO = [
+@@ -522,6 +527,8 @@
+  * horário" é agenda.
+  */
+ const CTA_CONTEXTUAL = [
++  // 14/10/2026 (red team da nuvem, T14): "me confirma que eu reservo", "aplica hoje", "fecha comigo que eu boleto".
++  { rotulo: 'oferta de executar pelo cliente', re: /\b(me confirma (?:que|e) eu|eu (?:ja )?(?:reservo|boleto|aplico)|(?:aplica|aplicar|aplique|entra|entrar|fecha|fechar|feche) (?:hoje|agora|ainda hoje)|fecha (?:comigo|com a gente))\b/ },
+   { rotulo: 'oferta de executar pelo cliente', re: /\b(me (da|de|der|manda|mande|passa) (o|um|seu) (ok|sim|de acordo|aceite)|so me confirmar (que|e) eu|deixo tudo (encaminhado|pronto|feito|engatilhado)|eu resolvo tudo)\b/ },
+ ];
+ const FRASE_DE_ORDEM = /\b(mesa|ordem|operacao|boleta|boletar|lote|aplicacao|resgate)\b/;
+@@ -529,9 +536,13 @@
+ /** (f) Promessa de rentabilidade / isenção de risco — ANBIMA art. 64, IV. Absolutos. */
+ const PROMESSA = [
+   { rotulo: 'garantia de resultado', re: /\b(rentabilidade garantida|retorno garantido|ganho garantido|lucro garantido|lucro certo|retorno certo|ganho certo|rentabilidade certa|garantia de (retorno|rentabilidade|resultado|ganho|lucro)|te garanto|eu garanto|garanto que|retorno assegurado)\b/ },
+-  { rotulo: 'isencao de risco', re: /\b(sem risco|risco zero|zero risco|nao tem risco|nao ha risco|risco nenhum|nao tem como perder|nao da pra perder|nao tem como dar errado|nao tem como dar ruim|impossivel (perder|dar errado|nao pagar)|nao tem como (esse|essa|o|a) [a-z]+ nao (pagar|render))\b/ },
+-  { rotulo: 'minimizacao de risco', re: /\b(risco (baixo|baixissimo|pequeno|minimo|quase zero|praticamente zero|controlado|irrisorio)|(baixo|pouco|pequeno|minimo) risco|nunca (atrasou|deu calote|deu problema|perdeu|teve prejuizo|cai|caiu|desvaloriza|desvalorizou))\b/ },
++  // 14/10/2026 (red team da nuvem, T14): "zero" chega aqui como 0 (o porExtenso roda antes dos detectores); risco zero nunca casava.
++  { rotulo: 'isencao de risco', re: /\b(sem risco|risco (?:zero|0)|(?:zero|0) risco|nao tem risco|nao ha risco|risco nenhum|nao tem como perder|nao da pra perder|nao tem como dar errado|nao tem como dar ruim|impossivel (perder|dar errado|nao pagar)|nao tem como (esse|essa|o|a) [a-z]+ nao (pagar|render))\b/ },
++  { rotulo: 'minimizacao de risco', re: /\b(risco (baixo|baixissimo|pequeno|minimo|quase (?:zero|0)|praticamente (?:zero|0)|controlado|irrisorio)|(baixo|pouco|pequeno|minimo) risco|nunca (atrasou|deu calote|deu problema|perdeu|teve prejuizo|cai|caiu|desvaloriza|desvalorizou))\b/ },
+   { rotulo: 'previsao sem base tecnica', re: /\b(com certeza (vai|rende|paga)|certamente (vai|rende|paga)|e certo que (vai|rende))\b/ },
++  // 14/10/2026 (red team da nuvem, T14): isencao de risco por sinonimo ou com pontuacao no meio, e promessa em outra lingua.
++  { rotulo: 'isencao de risco', re: /\b(nao (tem|ha|existe|oferece) (nenhum |qualquer )?risco|(e|eh|esta|sao|fica|seria) (livre|isent[oa]s?) de (qualquer |todo )?risco|nao perde (um|nenhum|1) centavo|(nunca|nao) (da|dara|vai dar|deu) prejuizo|prejuizo [a-z ]{0,25}nao existe|nao (existe|ha|tem) (chance|possibilidade) de (perder|dar errado|dar prejuizo|ter prejuizo)|chance de (perder|dar errado|prejuizo)[^.!?]{0,30}\b(nula|nenhuma|zero|0|inexistente))\b|\brisco[^.!?]{0,30}[?:]\s*(nenhum|nenhuma|inexistente|zero|0)\b/ },
++  { rotulo: 'promessa em lingua estrangeira', re: /\b(guaranteed (return|returns|income|profit|yield)|risk[- ]free|no risk|sin riesgo|rentabilidad garantizada|ganancia garantizada|retorno garantizado)\b/ },
+   { rotulo: 'promessa em giria', re: /\b((e|ta|esta|sera|seria) batata|nao tem erro|sem erro nenhum|dorme tranquilo|pode dormir tranquilo|dormir tranquilo|dorme sossegado|pode ficar tranquilo|fica tranquilo|tiro certo|aposta certa|dinheiro facil|so alegria|vai dar bom|moleza|no ?brainer|pinga (todo|tudo|todos os|tds os) mes|cai todo mes|renda (garantida|certa))\b/ },
+ ];
+ 
+@@ -541,6 +552,8 @@
+   { rotulo: 'garantia de resultado', re: /\bgarantid[oa]s?\b/ },
+   { rotulo: 'resultado dado como certo', re: /\b(e|sera|seria|esta|fica) (cert[oa]|garantid[oa]|assegurad[oa])\b/ },
+   { rotulo: 'seguranca comparada', re: /\b(seguro como|tao seguro quanto|mais seguro que|mais seguro do que|seguro igual)\b/ },
++  // 14/10/2026 (red team da nuvem, T14): promessa por sinonimo que so e promessa numa frase de investimento.
++  { rotulo: 'garantia de resultado', re: /\b(garantimos|garantiremos|pode contar com (esse|este|o) (dinheiro|retorno|rendimento|valor)|rende (redondinho|certinho)|a prova de (perda|perdas|prejuizo)|infalivel|jogo ganho|so cresce|nao oscila|estabilidade total|sem sustos?|pode ficar sossegad[oa]|nao volta menor|totalmente segur[oa]|100% segur[oa]|nunca teve (mes|ano) negativo|nao corre (nenhum )?risco)\b/ },
+ ];
+ 
+ /** Palavras de dúvida que, FORA de frase financeira, não barram mas pedem olho humano. */
+@@ -696,7 +709,7 @@
+  * numero do seu celular" (G17) não tem autenticação e não entra.
+  */
+ const CONTEXTO_DE_AUTENTICACAO =
+-  /\b(?:autentica\w*|verificac(?:ao|oes)|validac(?:ao|oes)|dois fatores|duplo fator|2fa|otp|token|tokens|sms|codigo de (?:seguranca|acesso|confirmacao|verificacao|validacao|autenticacao))\b/;
++  /\b(?:autentica\w*|verificac(?:ao|oes)|validac(?:ao|oes)|(?:dois|2) fatores|duplo fator|2fa|otp|token|tokens|sms|codigo de (?:seguranca|acesso|confirmacao|verificacao|validacao|autenticacao))\b/;
+ const PEDIDO_DE_CODIGO = new RegExp(
+   `(?:${PEDIDO_AO_ASSESSOR.source})[^.!?]{0,30}?\\b(?:(?:(?:o|os|a|as|esse|essa|esses|essas|aquele|aquela|\\d+|seis|quatro|oito) )?(?:numeros?|numerozinhos?|numerinhos?|codigos?|codiguinhos?|sequencia|digitos|letras|mensagem|sms|senha)|ele|ela|isso|o que (?:chegar|chegou|vier|veio|aparecer|apareceu))\\b`
+ );
+@@ -846,6 +859,9 @@
+       return dinheiro || ASSESSOR_APLICA.test(t) ? m : null;
+     }),
+   },
++  // 14/10/2026 (red team da nuvem, T14): entrega em maos, busca do envelope, e recurso para parente ou socio do assessor sem a palavra conta.
++  { rotulo: 'entrega em maos ou busca do recurso pelo assessor', re: /\b(entrego|entregamos|levo|levamos) (o |a |esse |essa )?(dinheiro |valor |resgate |aporte |envelope |cheque |recurso )?(pra voce |pro senhor |pra senhora |a voce |ao senhor |a senhora )?em maos\b|\b(o|a|esse|essa) (resgate|dinheiro|valor|aporte|recurso) (eu|a gente|nos) (te |lhe )?(entrego|entregamos|levo|levamos|busco|buscamos|pego|pegamos)\b|\b(deixa|deixe|deixar) (o|a|um|uma) (envelope|cheque|dinheiro|valor)\b[^.!?]{0,40}\b(eu|a gente) (busco|pego|buscamos|pegamos|retiro|recolho)\b/ },
++  { rotulo: 'recurso do cliente para parente, socio ou conhecido do assessor', re: /\b(transfere|transfira|manda|mande|deposita|deposite|faz o pix|faz um pix|faca o pix|faca um pix|passa|passe|envia|envie)\b[^.!?]{0,20}\b(pro|pra|para o|para a|ao) (meu|minha) (socio|socia|irmao|irma|pai|mae|filho|filha|primo|prima|amigo|amiga|esposa|marido|conhecido|conhecida|cunhado|cunhada)\b/ },
+   // Rodada 5 (T02, E04): pedir a chave pix do cliente não tem uso legítimo para o assessor.
+   { rotulo: 'pedido da chave pix do cliente', re: /\bqual (?:e |seria |era )?(?:a )?(?:sua |tua )?chave (?:do )?pix\b|\b(?:me|pra mim) (?:manda|mande|passa|passe|fala|fale|diz|diga|informa|informe|envia|envie)\b[^.!?]{0,20}\bchave (?:do )?pix\b|\bchave (?:do )?pix\b[^.!?]{0,30}\beu (?:acerto|resolvo|aplico|invisto|pago|transfiro|deposito)\b/ },
+   // Rodada 6 (V01, V03 da revisão final): o assessor busca, pega ou recebe o dinheiro.
+@@ -867,6 +883,8 @@
+   { rotulo: 'codigo de verificacao por sinonimo ("numerozinho que chega")', re: /\b(codigo|codiguinho|numero|numerozinho|numerinho|digitos|numeros|sequencia)\b[^.!?]{0,40}\b(que chega|que chegou|que vai chegar|do sms|por sms|via sms|no sms|pelo sms|do app|do aplicativo|no celular|no seu celular|no telefone|de verificacao|de seguranca|de confirmacao|de autenticacao)\b/ },
+   // Rodada 4 (T07, T10 da revisão 3)
+   { rotulo: 'senha por outro nome (palavra-passe, PIN, chave de acesso)', re: /\b(?:palavra[- ]?passe|pin|pins|chave de acesso|chave privada|chave secreta|frase (?:de recuperacao|semente|secreta)|seed|cvv|cvc|codigo de seguranca do cartao)\b/ },
++  // 14/10/2026 (red team da nuvem, T14): palavra-chave, QR code, link de acesso, e-mail de confirmacao e desligar a verificacao.
++  { rotulo: 'acesso por outro nome (palavra-chave, QR code, link de acesso, desligar a verificacao)', re: /\bpalavra[- ]?chave d[ao] (?:sua |seu )?(?:conta|app|aplicativo|acesso|login)\b|\b(?:me|pra mim) (?:passa|passe|manda|mande|envia|envie|encaminha|encaminhe|repassa|repasse|fala|fale)\b[^.!?]{0,25}\b(?:qr ?code|codigo qr|link de acesso|link de login|e[- ]?mail de (?:confirmacao|acesso|verificacao|autenticacao))\b|\b(?:desativa|desative|desativar|desliga|desligue|desligar|tira|tire|remove|remova)\b[^.!?]{0,15}\b(?:autenticac\w*|verificac\w*|2fa|(?:dois|2) fatores|dupla verificacao)\b/ },
+   // Rodada 5 (T13): pergunta ou resposta secreta é credencial, em qualquer frase.
+   { rotulo: 'pergunta ou resposta secreta', re: /\b(?:pergunta|resposta|palavra) (?:secreta|de seguranca)\b/ },
+   // Rodada 5 (T08-T12, T14, E05-E07): pedido ao assessor + objeto de acesso + lugar de acesso.
+@@ -913,6 +931,8 @@
+     }),
+   },
+   { rotulo: 'o assessor se passa pelo cliente ("me identificando como o senhor", "me passo pelo senhor")', re: SE_PASSA_PELO_CLIENTE },
++  // 14/10/2026 (red team da nuvem, T14): o assessor decide, toca ou controla a carteira do cliente.
++  { rotulo: 'o assessor decide ou toca a carteira pelo cliente ("eu decido por voce", "eu toco a sua carteira")', re: /\beu (?:mesmo )?(?:decido|escolho|resolvo) (?:tudo )?(?:por voce|pelo senhor|pela senhora|no seu lugar)\b|\beu (?:mesmo |ja )?(?:toco|administro|giro|gerencio|controlo|cuido d[ao]s?) (?:a |as |os )?(?:sua|suas|seus|seu) (?:carteira|investimentos|aplicacoes|conta|patrimonio|dinheiro)\b|\bme deixa (?:no controle|cuidar|mexer) (?:da|na) (?:sua )?conta\b|\blibera (?:o )?meu acesso\b|\beu mesmo aperto o botao\b/ },
+ ];
+ 
+ /** Res. 35 art. 31, §1º: o interesse de quem escreve como argumento para o cliente investir. */
+@@ -1313,7 +1333,7 @@
+     .replace(/(nao e |nao sao )?garantid[oa]s? pel[oa] (fgc|fundo garantidor[a-z ]*|tesouro( nacional)?)/g, ' ')
+     .replace(/(garantia|cobertura) do (fgc|fundo garantidor[a-z ]*|tesouro( nacional)?)/g, ' ')
+     .replace(/\b(nao ha|nao existe|nao tem|sem|nenhuma) garantia de (retorno|rentabilidade|resultado|ganho|lucro)s?( futuros?)?/g, ' ')
+-    .replace(/\b(nao existe|nao ha|nenhum) (investimento|aplicacao|produto) sem risco\b/g, ' ');
++    .replace(/\b(nao existe|nao ha|nenhum) (investimento|aplicacao|produto) (sem risco|(e |que seja )?(livre|isent[oa]) de risco)\b/g, ' '); // 14/10/2026 (red team da nuvem, T14): a negacao certa nao se acusa
+ 
+   // Vedações absolutas do art. 25 (I, II, VI)
+   for (const a of achar(t, NUMERARIO)) bloquear('R10', 'res178-art25-I', `a mensagem propoe ${a.rotulo}`, a.trecho);
+@@ -2210,7 +2230,9 @@
+  * o rodapé volta a ser obrigatório mesmo que nenhum detector tenha falado. Existe para o caso
+  * de um detector deixar passar: a dispensa nunca pode depender de UMA peça só.
+  */
+-const SINAL_DE_DINHEIRO = /(R\$|\breais?\b|%|\bpor\s*cento\b|\bcdi\b|\bipca\b|\bselic\b|\btaxas?\b|\brendiment|\brentabilidade|\bjuros?\b|\baplica[cç][oõaã]|\baplicar\b|\binvestir\b|\binvestiment|\bresgat|\bvencimento\b|\bcarencia\b|\bcar[eê]ncia\b|\bcdb\b|\blci\b|\blca\b|\bcri\b|\bcra\b|\bdeb[eê]ntur|\btesouro\b|\bfundos?\b|\bcoe\b|\bprevid[eê]nc|\bcons[oó]rcios?\b|\bseguros?\b|\bc[aâ]mbio\b|\bd[oó]lar\b|\bcarteira\b|\bposi[cç][aã]o\b|\bsaldo\b|\bpatrim[oô]nio\b|\bcustod|\bcorretagem\b|\bganh(a|ar|ando|o|os)\b|\blucr|\bretorno\b|\brende(r|ndo)?\b|\d[\d.,]*\s*(mil|mi|milh|k\b))/i;
++// 14/10/2026 (tarefa 20 da nuvem): deposito, pix, TED, transferencia e boleto tambem sao dinheiro (instrucao de deposito saia
++// como conversa pura, sem rodape).
++const SINAL_DE_DINHEIRO = /(R\$|\bdeposit|\bpix\b|\bted\b|\btransfer[eê]ncia|\bboleto|\breais?\b|%|\bpor\s*cento\b|\bcdi\b|\bipca\b|\bselic\b|\btaxas?\b|\brendiment|\brentabilidade|\bjuros?\b|\baplica[cç][oõaã]|\baplicar\b|\binvestir\b|\binvestiment|\bresgat|\bvencimento\b|\bcarencia\b|\bcar[eê]ncia\b|\bcdb\b|\blci\b|\blca\b|\bcri\b|\bcra\b|\bdeb[eê]ntur|\btesouro\b|\bfundos?\b|\bcoe\b|\bprevid[eê]nc|\bcons[oó]rcios?\b|\bseguros?\b|\bc[aâ]mbio\b|\bd[oó]lar\b|\bcarteira\b|\bposi[cç][aã]o\b|\bsaldo\b|\bpatrim[oô]nio\b|\bcustod|\bcorretagem\b|\bganh(a|ar|ando|o|os)\b|\blucr|\bretorno\b|\brende(r|ndo)?\b|\d[\d.,]*\s*(mil|mi|milh|k\b))/i;
+ 
+ /**
+  * SINAL DE OFERTA — urgência, escassez, promessa e comparação.
+@@ -2244,6 +2266,10 @@
+   if (!r || !Array.isArray(r.bloqueios)) return false;
+   if (r.bloqueios.some((b) => b.regra !== 'R08')) return false;
+   if ((r.revisar || []).some((x) => x.origem === 'conteudo' && x.regra !== 'R38')) return false;
++  // 14/10/2026 (tarefa 20 da nuvem): produto achado pelo proprio portao tambem desfaz a dispensa. A lista
++  // SINAL_DE_DINHEIRO abaixo nao tem "renda fixa", "titulo publico", "multimercado", "bitcoin" e outros que o
++  // detector de produto conhece: com o rodape oficial vazio, essas mensagens saiam REVISAR sem rodape (art. 24).
++  if ((r.revisar || []).some((x) => x.regra === 'R37' && x.origem === 'termo' && /^termo financeiro \(produto\)/.test(x.motivo || ''))) return false;
+ 
+   const t = String(texto || '');
+   if (SINAL_DE_DINHEIRO.test(t)) return false;

@@ -1,0 +1,562 @@
+<title>Nuvem · 00 · triagem das entregas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; resumo em chips, tabelas largas com rolagem própria */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.v { font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.neutro { background: var(--code-bg); color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.largo table { min-width: 760px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+
+.msg { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.msg summary { cursor: pointer; padding: 10px 14px; list-style-position: outside; overflow-wrap: anywhere; }
+.msg[open] summary { border-bottom: 1px solid var(--line); }
+.msgcorpo { display: grid; gap: 8px; padding: 12px 14px; }
+.msgcorpo pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.cont { color: var(--muted); font: 12px var(--mono); }
+.copiar { justify-self: start; font: 500 13px var(--sans); color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.copiar:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lista-msgs { display: grid; gap: 8px; }
+main { max-width: 980px; }
+.fila table { min-width: 900px; }
+.fila th:nth-child(1) { width: 4%; } .fila th:nth-child(2) { width: 22%; } .fila th:nth-child(3) { width: 17%; }
+.fila th:nth-child(4) { width: 23%; } .fila th:nth-child(5) { width: 24%; }
+.fila code { white-space: nowrap; overflow-wrap: normal; }
+.pac { border-left: 3px solid var(--accent); padding-left: 14px; display: grid; gap: 8px; min-width: 0; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · 00 · tarefa 24 · 14/10/2026</div>
+    <h1>Triagem das entregas</h1>
+    <p class="lead">As entregas 11 a 23 da nuvem, em ordem de prioridade. Cada patch foi aplicado numa cópia limpa do pacote, sozinho, em sequência e todos juntos, e a suíte inteira rodou (testes antigos, harnesses e testes novos). O resultado são 6 diffs consolidados em <code>aplicar/</code>, prontos para <code>patch -p1</code> ou <code>git apply</code>, e uma mensagem pronta para cada conversa dona.</p>
+    <div class="chips">
+      <span class="chip bad">8 entregas com prioridade 1</span>
+      <span class="chip ok">6 consolidados, todos verdes</span>
+      <span class="chip warn">2 conflitos resolvidos (13 e 15)</span>
+      <span class="chip bad">X01 novo: ALTO</span>
+      <span class="chip neutro">13 de 13 entregas publicadas</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>A fila, por prioridade</h2>
+    <div class="tbl fila"><table>
+      <thead><tr><th>#</th><th>Entrega</th><th>Dona</th><th>Patch e testes</th><th>O que fazer</th><th>Prior.</th></tr></thead>
+      <tbody>
+<tr><td class="num">15</td><td><a href="https://claude.ai/artifact/BHrM2sja7RRUZFGALma6c9">Infra · modos de falha da VPS</a><br><span class="v ok">completo</span></td><td>01 · Infra e robôs</td><td><code>infra-vps.diff</code> · 4 CRÍT. + 3 ALTO + X01 · 8/8</td><td>Renovar o contrato até 17/10 e tirar snapshot; aplicar; levar cada arquivo ao seu lugar</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">12</td><td><a href="https://claude.ai/artifact/VLDe1MYMQhLLQDhg3vvsnK">Ozav · auditoria da catraca</a><br><span class="v ok">completo</span></td><td>13 · Ozav · Motor e CRM</td><td><code>ozav-envio.diff</code> (com a 18) · 6 CRÍT. + 3 ALTO · 20/20</td><td>Aplicar, rodar a suíte, deploy com <code>--reiniciar</code> com o OK do dono</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">18</td><td><a href="https://claude.ai/artifact/JVuhY21FGroBjuuWgEH2AZ">Ozav · risco de banimento no WhatsApp</a><br><span class="v ok">completo</span></td><td>13 · Ozav · Motor e CRM</td><td>dentro do <code>ozav-envio.diff</code> · W01 ALTO · 8/8</td><td>Nada a mais para aplicar; decidir o teto de sem-resposta e o plano B</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">13</td><td><a href="https://claude.ai/artifact/Dx7sA5hvyaCuV8ydxzTrxz">Ozav · auditoria do gateway LLM</a><br><span class="v ok">completo · sem para-a-00</span></td><td>13 · Ozav · Motor e CRM</td><td><code>ozav-gateway-llm.diff</code> · 7 ALTO · 17/17</td><td>Trocar <code>&lt;IP_VPS&gt;</code> pelo IP lido do <code>llm.js</code> e aplicar</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">14</td><td><a href="https://claude.ai/artifact/9PiiQKdp8MFakYy68ZTiwW">Veedha · red team do portão</a><br><span class="v ok">completo</span></td><td>23 · Veedha · Motor + 20 · Orquestrador</td><td><code>veedha-portao.diff</code> (com a 20) · 773 + 12 ok</td><td>Aplicar no motor; decidir gíria de agenda e pressa</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">16</td><td><a href="https://claude.ai/artifact/T3igcdiV2nsqPbRmTiFEsx">Setup · revisão do Claude Code</a><br><span class="v ok">completo</span></td><td>02 · Setup do Claude</td><td><code>setup-claude.diff</code> · K1–K3 CRÍT. (texto) + 2 ALTO · 6/6</td><td>Fazer o <code>faca-em-10-minutos</code> e corrigir K1–K3; patches 02–04 esta semana</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">17</td><td><a href="https://claude.ai/artifact/G8CyPWScUMzSWiY18EHgpE">Geral · próximas frentes</a><br><span class="v ok">proposta para decidir</span></td><td>00 · Orquestrador geral</td><td>sem código · 10 frentes</td><td>Decidir as 3 primeiras; a 1ª (esteira) já tem metade nesta triagem</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">23</td><td><a href="https://claude.ai/artifact/VXAfSfQDBKY6u5ScCMP5hR">Fred · legenda v2</a><br><span class="v ok">completo</span></td><td>31 · Fred · Conteúdo</td><td><code>fred-legenda.diff</code> ou <code>v2/</code> · 29/29</td><td>Instalar com <code>av&lt;16</code>; revisar → queimar nos 2 vídeos de 14/10</td><td><span class="v bad">1 · hoje</span></td></tr>
+<tr><td class="num">20</td><td><a href="https://claude.ai/artifact/AggCuoqkZi6FT2XPtKFne8">Veedha · modelos à prova do portão</a><br><span class="v ok">completo</span></td><td>20 · Veedha · Orquestrador + 23 · Motor</td><td>patch dentro do <code>veedha-portao.diff</code> · 30/30 modelos</td><td>Aprovar modelo a modelo; esperar o rodapé oficial para os de produto</td><td><span class="v warn">2 · semana</span></td></tr>
+<tr><td class="num">19</td><td><a href="https://claude.ai/artifact/Bsp8ABAFv2jFGo1ocCWAtC">Veedha · obrigações do AAI</a><br><span class="v warn">parcial na verificação</span></td><td>23 · Veedha · Motor + 20 · Orquestrador</td><td>sem patch · V01 e V02 ALTO sem teste</td><td>Escrever os testes de V01 e V02; perguntar à XP</td><td><span class="v warn">2 · semana</span></td></tr>
+<tr><td class="num">22</td><td><a href="https://claude.ai/artifact/5xoQBMR4sW79nBwktfVgKx">Ozav · e-mail frio sem cair no spam</a><br><span class="v ok">completo no código</span></td><td>13 · Motor e CRM + 16 · Ozav · Hunting</td><td>script novo · 33/33</td><td>Rodar o script no domínio novo; 4 semanas de aquecimento</td><td><span class="v warn">2 · semana</span></td></tr>
+<tr><td class="num">21</td><td><a href="https://claude.ai/artifact/A5BPx2ah13k8YvYArnaMjx">Fred · publi sem risco</a><br><span class="v warn">parcial na verificação</span></td><td>32 · Fred · Comercial</td><td>sem código</td><td>Mandar o checklist à agência; decidir bet e PJ</td><td><span class="v warn">2 · semana</span></td></tr>
+<tr><td class="num">11</td><td><a href="https://claude.ai/artifact/UTQkj731ann8yvKvTdg1YJ">Ozav · novas frentes de canal</a><br><span class="v warn">completo · só busca · sem para-a-00</span></td><td>10 · Ozav · Orquestrador + 17 · Canhões</td><td>sem código · 78 programas</td><td>Guardar; decidir a oferta ao contador quando entrar na pauta</td><td><span class="v neutro">3 · guardar</span></td></tr>
+
+      </tbody>
+    </table></div>
+    <p class="nota-fonte">Prioridade 1 = CRÍTICO ou ALTO com teste, aplicar hoje. 2 = esta semana. 3 = guardar. A contagem de testes é a da nuvem, com o consolidado aplicado.</p>
+  </section>
+
+  <section>
+    <h2>Aplicar, pacote a pacote</h2>
+    <p><code>&lt;t24&gt;</code> é a pasta onde foi baixado este artifact. Antes de aplicar, rode os testes para ver que falham; depois, os mesmos testes passam.</p>
+    <div class="pac">
+      <h3>Pasta do CRM da Ozav: <code>ozav-envio.diff</code> (12 + 18) e <code>ozav-gateway-llm.diff</code> (13)</h3>
+<pre>cp -r &lt;t24&gt;/aplicar/testes/ozav-envio/. . &amp;&amp; cp -r &lt;t24&gt;/aplicar/testes/ozav-gateway-llm/. .
+node --test testes/catraca-auditoria.test.js testes/banimento.test.js testes/gateway-falhas.test.js   # 29 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/ozav-envio.diff
+IP=$(grep -oE 'http://[0-9.]+:8778' llm.js | head -1 | cut -d/ -f3 | cut -d: -f1); echo $IP
+sed "s/&lt;IP_VPS&gt;/$IP/g" &lt;t24&gt;/aplicar/ozav-gateway-llm.diff | patch -p1
+node --test testes/*.test.js &amp;&amp; node catraca.js --harness &amp;&amp; node whatsapp-governador.js --testar &amp;&amp; node llm.js --testar-plano</pre>
+      <p>Na nuvem, os dois juntos dão 78 ok + 2 todo. O harness da catraca dá 148/158 aqui, com as mesmas 10 falhas antes e depois: são efeito da sanitização (no PC, 158/158).</p>
+      <p>Em sequência, o 09 e o 11 da 13 batem no 03 (o mesmo <code>catch</code>); o consolidado é o <code>todos.diff</code> da 13. O 18 entra no <code>whatsapp-governador.js</code> com deslocamento de 13 linhas sobre a 12.</p>
+      <p>O deploy é <code>./deploy/subir.sh --reiniciar</code>, fora do horário comercial e com o OK do dono, porque governador e catraca ficam na raiz, fora da assinatura da recaptura.</p>
+    </div>
+    <div class="pac">
+      <h3>Motor da Veedha: <code>veedha-portao.diff</code> (14 + patch 01 da 20)</h3>
+<pre>cp -r &lt;t24&gt;/aplicar/testes/veedha-portao/. .
+node --test testes/redteam.teste.js testes/dispensa.teste.js testes/modelos20.teste.js   # 10 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/veedha-portao.diff
+node --test testes/redteam.teste.js testes/dispensa.teste.js testes/modelos20.teste.js   # 12 ok
+VEEDHA_VAULT=./vault node testes/portao.teste.js                                          # 773 ok</pre>
+      <p>14 e 20 aplicam nas duas ordens e dão o mesmo <code>portao.js</code>. O <code>conferir.teste.js</code> falha antes e depois: falta o <code>coletor/coletar</code> no pacote.</p>
+    </div>
+    <div class="pac">
+      <h3>Pacote "Infra · VPS": <code>infra-vps.diff</code> (15 + X01)</h3>
+<pre>cp -r &lt;t24&gt;/aplicar/testes/infra-vps/. .
+node --test testes/vps-falhas.test.js testes/estado-do-governador.test.js   # 8 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/infra-vps.diff
+node --test testes/vps-falhas.test.js testes/estado-do-governador.test.js   # 8 ok</pre>
+      <p>Em sequência, o 06 da 15 bate no 03 (o mesmo <code>tar</code>); o consolidado parte do <code>todos.diff</code> da 15. Depois, <code>ozav/deploy</code> vai pelo <code>subir.sh</code>, <code>fred/fred-motor</code> pelo caminho do personagem, e <code>pc/vigiar-vps.js</code> entra no Agendador, de 30 em 30 min.</p>
+    </div>
+    <div class="pac">
+      <h3>Pacote "Setup · Claude Code": <code>setup-claude.diff</code> (16)</h3>
+<pre>cp -r &lt;t24&gt;/aplicar/testes/setup-claude/. .
+node --test testes/hooks.test.js   # 5 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/setup-claude.diff
+node --test testes/hooks.test.js   # 6 ok</pre>
+      <p>Depois, os 3 arquivos vão para <code>~&#92;.claude&#92;hooks&#92;</code> e <code>OneDrive&#92;Claude&#92;automacao&#92;</code>, e o bloco <code>PreToolUse</code> da guarda entra no <code>settings.json</code>.</p>
+      <p>A guarda barra todo comando que cita <code>~/.ozav</code>. Isso inclui manutenção, como o <code>sed</code> do <code>OZAV_CANAL</code> que o <code>subir.sh</code> sugere e o <code>chmod 600</code>: esses o dono roda à mão. Fica anotado como BAIXO, sem patch.</p>
+    </div>
+    <div class="pac">
+      <h3>Legenda do Fred: <code>fred-legenda.diff</code> (23)</h3>
+<pre>patch -p1 &lt; &lt;t24&gt;/aplicar/fred-legenda.diff      # na pasta da v1
+pip install faster-whisper "av&lt;16" pytest
+python -m pytest -q test_legenda_reels.py           # 28 ok + 1 pulado com av&lt;16</pre>
+      <p>Sobre a v1 da tarefa 8, dá os 4 arquivos idênticos à <code>v2/</code> da 23.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>X01 · o backup não levava o disjuntor</h2>
+    <p>Cruzando a 15 com a 12 e a 18: o backup (patch 06) e a restauração (patch 07) da 15 têm uma lista fechada do estado que só existe no servidor. Ficaram fora dessa lista:</p>
+    <ul>
+      <li><code>whatsapp-governador.json</code>, com o disjuntor que o 463 arma (patch 01 da 18), a pausa e o aquecimento;</li>
+      <li><code>catraca-regras.json</code>, com as regras vivas da catraca.</li>
+    </ul>
+    <p>Se a VPS cai com o disjuntor armado, o governador restaurado não acha o arquivo e volta ao padrão. O volume volta ao normal no meio da restrição, sem aviso.</p>
+    <ul>
+      <li><b>ALTO</b>, com confiança alta no mecanismo e baixa na frequência: só pesa no dia de restaurar.</li>
+      <li><b>Patch:</b> <code>patches/01-backup-leva-estado-do-governador.diff</code>, que põe 2 nomes nas 2 listas e já está dentro do <code>infra-vps.diff</code>.</li>
+      <li><b>Teste:</b> <code>testes/estado-do-governador.test.js</code>. Falha só com a 15 e passa com o X01.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Mensagens prontas para as donas</h2>
+    <p>Cada uma tem até 1.200 caracteres e diz o artifact, o que aplicar, como testar e o que decidir.</p>
+    <div class="lista-msgs">
+<details class="msg"><summary><span class="mono">11-ozav-orquestrador-e-canhoes.md</span> · Para 10 · Ozav · Orquestrador (decidir) e 17 · Ozav · Canhões (executar) · entrega 11 · prioridade 3 <span class="cont">1119 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m0">Copiar</button><pre id="m0">Para 10 · Ozav · Orquestrador (decidir) e 17 · Ozav · Canhões (executar) · entrega 11 · prioridade 3
+
+Artifact: &quot;Nuvem · Ozav · novas frentes de canal&quot; https://claude.ai/artifact/UTQkj731ann8yvKvTdg1YJ
+
+Sem código. São 78 programas em `canais.csv`, um top 10 e o &quot;como entrar&quot; nos 3 primeiros:
+1. **Conta Azul:** Conecta, entrada gratuita, nenhum câmbio listado.
+2. **Omie.Store:** cobra junto da mensalidade; o percentual que retém não é público.
+3. **Contadores:** programa próprio, mais Sescon-SP, Fenacon e CRCSP.
+
+**Canhões, primeiro passo:** criar o app no Portal do Desenvolvedor da Conta Azul. Depois, montar numa conta de teste a primeira integração: o pagamento internacional vira baixa de conta a pagar.
+
+**Decidir (Orquestrador):** a oferta ao contador. A proposta é comissão recorrente por 12 a 24 meses, paga contra nota do escritório.
+
+**Antes do contrato, com o jurídico:**
+- a NBC PG 01 (comissão de contador);
+- a Resolução CMN 4.935/2021 (correspondente no país).
+
+**Limitações:**
+- tudo é &quot;só busca&quot;: nenhuma página abriu nesta nuvem;
+- a entrega não tem `para-a-00.md`, porque saiu antes da regra.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">12-ozav-motor-e-crm.md</span> · Para 13 · Ozav · Motor e CRM · entrega 12 · prioridade 1 <span class="cont">1145 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m1">Copiar</button><pre id="m1">Para 13 · Ozav · Motor e CRM · entrega 12 · prioridade 1
+
+Artifact: &quot;Nuvem · Ozav · auditoria da catraca&quot; https://claude.ai/artifact/VLDe1MYMQhLLQDhg3vvsnK
+Consolidado 12 + 18 em aplicar/ozav-envio.diff na triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT (&lt;t24&gt; = pasta baixada dela).
+
+Na pasta do CRM no PC:
+```
+cp -r &lt;t24&gt;/aplicar/testes/ozav-envio/. .
+node --test testes/catraca-auditoria.test.js testes/banimento.test.js   # 16 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/ozav-envio.diff
+node --test testes/*.test.js &amp;&amp; node catraca.js --harness &amp;&amp; node whatsapp-governador.js --testar
+```
+
+**O que corrige:**
+- 6 CRÍTICOS:
+  - painel ilegível solta e apaga travas;
+  - duplicata depois de queda;
+  - dois robôs na mesma conversa;
+  - trava que não casa nome com emoji;
+  - conta nominal com espaço duro.
+- 3 ALTOS.
+
+Na nuvem: 33 + 20 + 8 ok, harness igual antes e depois.
+
+**Com o OK do dono:** `./deploy/subir.sh --reiniciar`, fora do horário comercial.
+
+**Conferir:** o 09 só protege se o dreno chamar `outbox.marcarEnviando(m)` antes do `sendMessage`.
+
+**Decidir:**
+- falhar fechado (R4);
+- véspera de dia santo depois das 17h;
+- Shabbat.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">13-ozav-motor-e-crm.md</span> · Para 13 · Ozav · Motor e CRM · entrega 13 · prioridade 1 <span class="cont">1133 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m2">Copiar</button><pre id="m2">Para 13 · Ozav · Motor e CRM · entrega 13 · prioridade 1
+
+Artifact: &quot;Nuvem · Ozav · auditoria do gateway LLM&quot; https://claude.ai/artifact/Dx7sA5hvyaCuV8ydxzTrxz
+Consolidado em aplicar/ozav-gateway-llm.diff na triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT. É o todos.diff da 13. Aplicados em sequência, o 09 e o 11 batem no 03.
+
+Na pasta do CRM (o patch 05 tem o marcador &lt;IP_VPS&gt;, lido do próprio llm.js):
+```
+cp -r &lt;t24&gt;/aplicar/testes/ozav-gateway-llm/. .
+IP=$(grep -oE &#x27;http://[0-9.]+:8778&#x27; llm.js | head -1 | cut -d/ -f3 | cut -d: -f1); echo $IP
+sed &quot;s/&lt;IP_VPS&gt;/$IP/g&quot; &lt;t24&gt;/aplicar/ozav-gateway-llm.diff | patch -p1
+node --test testes/gateway-falhas.test.js &amp;&amp; node llm.js --testar-plano
+```
+
+**7 ALTOS:**
+- timeout repetido 4x;
+- resposta vazia ou cortada passa como sucesso;
+- 402 sem aviso;
+- teste de lote come o orçamento da função;
+- teto do processo nunca zera;
+- 6 `claude` numa VPS de 1 vCPU;
+- segunda leitura no mesmo fornecedor.
+
+Na nuvem: 17/17 + 1 todo, e os harnesses passam. Aplica junto com o ozav-envio.diff.
+
+**Decidir:** passar `evitarFornecedor` na segunda leitura, porque sem isso o 09 não age.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">14-veedha-motor-e-orquestrador.md</span> · Para 23 · Veedha · Motor (aplicar) e 20 · Veedha · Orquestrador (decidir) · entrega 14 · prioridade 1 <span class="cont">1109 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m3">Copiar</button><pre id="m3">Para 23 · Veedha · Motor (aplicar) e 20 · Veedha · Orquestrador (decidir) · entrega 14 · prioridade 1
+
+Artifact: &quot;Nuvem · Veedha · red team do portão&quot; https://claude.ai/artifact/9PiiQKdp8MFakYy68ZTiwW
+Consolidado da 14 mais o patch da 20 em aplicar/veedha-portao.diff, na triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT.
+
+Na pasta do motor:
+```
+cp -r &lt;t24&gt;/aplicar/testes/veedha-portao/. .
+node --test testes/redteam.teste.js testes/dispensa.teste.js testes/modelos20.teste.js   # 10 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/veedha-portao.diff
+node --test testes/redteam.teste.js testes/dispensa.teste.js testes/modelos20.teste.js   # 12 ok
+VEEDHA_VAULT=./vault node testes/portao.teste.js   # 773 ok
+```
+
+**O que muda:**
+- as fugas para REVISAR caem de 71 para 9;
+- nenhuma mensagem sai LIVRE sem dever;
+- com o patch da 20, &quot;renda fixa&quot;, &quot;pix&quot; e &quot;TED&quot; sem rodapé deixam de passar.
+
+As duas ordens dão o mesmo `portao.js`.
+
+**Decidir (20):**
+- barrar a gíria de agenda (&quot;já remarquei&quot;, &quot;vai dar bom&quot;);
+- se a pressa sozinha barra.
+
+**Só com dado real:** o alarme falso no corpus anonimizado do escritório.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">15-infra-e-robos.md</span> · Para 01 · Infra e robôs · entrega 15 · prioridade 1 <span class="cont">1175 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m4">Copiar</button><pre id="m4">Para 01 · Infra e robôs · entrega 15 · prioridade 1
+
+Artifact: &quot;Nuvem · Infra · modos de falha da VPS&quot; https://claude.ai/artifact/BHrM2sja7RRUZFGALma6c9
+Consolidado em aplicar/infra-vps.diff na triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT: o todos.diff da 15 mais o X01.
+
+**Antes de tudo:** renovar o contrato da VPS até 17/10 (vence em 18/10) e tirar um snapshot novo.
+
+Na raiz do pacote &quot;Infra · VPS&quot;:
+```
+cp -r &lt;t24&gt;/aplicar/testes/infra-vps/. .
+node --test testes/vps-falhas.test.js testes/estado-do-governador.test.js   # 8 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/infra-vps.diff
+node --test testes/vps-falhas.test.js testes/estado-do-governador.test.js   # 8 ok
+```
+
+Depois, cada arquivo vai para o seu lugar:
+- `ozav/deploy`: pelo `subir.sh`;
+- `fred/fred-motor`: pelo caminho do personagem;
+- `pc/vigiar-vps.js`: no Agendador, de 30 em 30 min.
+
+**X01 (ALTO, novo):** o backup e a restauração não levavam o `whatsapp-governador.json` (disjuntor, pausa e aquecimento) nem o `catraca-regras.json`. Perdida a VPS, o disjuntor sumia no meio de uma restrição.
+
+**Decidir:**
+- `restaurar-estado.sh --seco` num pacote real;
+- desligar a expiração da chave do Tailscale.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">16-setup-do-claude.md</span> · Para 02 · Setup do Claude · entrega 16 · prioridade 1 <span class="cont">1167 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m5">Copiar</button><pre id="m5">Para 02 · Setup do Claude · entrega 16 · prioridade 1
+
+Artifact: &quot;Nuvem · Setup · revisão do Claude Code&quot; https://claude.ai/artifact/T3igcdiV2nsqPbRmTiFEsx
+Consolidado em aplicar/setup-claude.diff na triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT. É o todos.diff da 16; os 5 aplicam em sequência sem conflito.
+
+Na raiz do pacote &quot;Setup · Claude Code&quot;:
+```
+cp -r &lt;t24&gt;/aplicar/testes/setup-claude/. .
+node --test testes/hooks.test.js   # 5 falham
+patch -p1 &lt; &lt;t24&gt;/aplicar/setup-claude.diff
+node --test testes/hooks.test.js   # 6 ok
+```
+Depois:
+- os 3 arquivos vão para `~\.claude\hooks\` e `OneDrive\Claude\automacao\`;
+- o bloco `PreToolUse` da guarda entra no `settings.json`.
+
+**Hoje:**
+- o `faca-em-10-minutos.md`;
+- o K1 a K3 do `skills.md` (CRÍTICOS: `/followup`, `/fechamento` e `/cliente` disparando fora da Ozav).
+
+**Esta semana:** os patches 02 a 04 e a dieta.
+
+**Saiba:** a guarda barra todo comando que cita `~/.ozav`, inclusive manutenção, como o `sed` do `OZAV_CANAL` que o `subir.sh` sugere. Esse o dono roda à mão.
+
+**Conferir no PC:**
+- se o Stop do plugin falha a cada resposta;
+- se o `PreToolUse` com saída 2 barra com o bypass ligado.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">17-orquestrador-geral.md</span> · Para 00 · Orquestrador geral · entrega 17 · prioridade 1 (decidir) <span class="cont">1137 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m6">Copiar</button><pre id="m6">Para 00 · Orquestrador geral · entrega 17 · prioridade 1 (decidir)
+
+Artifact: &quot;Nuvem · Geral · próximas frentes&quot; https://claude.ai/artifact/G8CyPWScUMzSWiY18EHgpE
+
+Sem código. São 10 frentes, cada uma com ganho, custo, risco e o primeiro passo (`frentes.md` e `frentes.csv`).
+
+**As 3 que ela propõe primeiro:**
+1. **Esteira de aplicação dos patches.** A triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT já faz metade: 6 diffs consolidados e testados em `aplicar/`, com os conflitos resolvidos. Falta o `aplicar.sh` no PC: mapa reverso → `git apply --check` → testes → aplica → reverte se quebrar.
+2. **Alarme de falha calada com vigia de fora.** O `pc/vigiar-vps.js` já vai no `infra-vps.diff`.
+3. **Trilha de compliance da Veedha:** registro de 5 anos e barreira de anexo (V01 e V02 da 19, ainda sem teste).
+
+**Decidir:**
+- as 3 primeiras;
+- a ordem do resto (saúde do número, dieta de contexto, biblioteca de modelos, prospecção, canal contador, vídeo, Olami).
+
+**Só com dado real:**
+- o volume semanal de mensagens que pedem OK;
+- os vídeos por semana;
+- as listas montadas à mão;
+- o ticket e a conversão do canal contador.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">18-ozav-motor-e-crm.md</span> · Para 13 · Ozav · Motor e CRM · entrega 18 · prioridade 1 <span class="cont">1124 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m7">Copiar</button><pre id="m7">Para 13 · Ozav · Motor e CRM · entrega 18 · prioridade 1
+
+Artifact: &quot;Nuvem · Ozav · risco de banimento no WhatsApp&quot; https://claude.ai/artifact/JVuhY21FGroBjuuWgEH2AZ
+
+Os 2 patches já vão no aplicar/ozav-envio.diff da triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT, junto com a 12. Não aplicar de novo. No `whatsapp-governador.js` é só deslocamento de linhas, sem conflito.
+
+**Teste:** `testes/banimento.test.js`. Antes falham 6 de 8; depois passam os 8.
+
+**W01 (ALTO):** o erro 463 (&quot;reach-out timelock&quot;) não armava o disjuntor nem avisava.
+
+**No servidor, depois do deploy:** `node whatsapp-governador.js --sem-resposta`. Ele só mede: o teto fica em 0.
+
+**Decidir:**
+- se liga `OZAV_WPP_SEM_RESPOSTA_30D`, e com que número;
+- o teste do Baileys 7.x num número de laboratório;
+- a rotina de abrir o celular a cada 10 dias;
+- o `plano-b.md`: a lista de e-mail dos clientes ativos e o aviso que o dono aprova antes.
+
+**Só com dado real:**
+- o texto que o dreno passa ao `sinal()`;
+- quantas mensagens sem resposta saem por mês;
+- se o `hunting.js` usa `onWhatsApp`;
+- quantos clientes ativos não têm e-mail no CRM.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">19-veedha-motor-e-orquestrador.md</span> · Para 23 · Veedha · Motor (V01 a V06) e 20 · Veedha · Orquestrador (checklist e XP) · entrega 19 · prioridade 2 <span class="cont">1008 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m8">Copiar</button><pre id="m8">Para 23 · Veedha · Motor (V01 a V06) e 20 · Veedha · Orquestrador (checklist e XP) · entrega 19 · prioridade 2
+
+Artifact: &quot;Nuvem · Veedha · obrigações do AAI&quot; https://claude.ai/artifact/Bsp8ABAFv2jFGo1ocCWAtC
+
+Sem código. Abrir `checklist.csv` (30 obrigações, separador ;) e `motor-x-vedacoes.md`. Não é parecer jurídico.
+
+**Motor:**
+- **V01 (ALTO):** não há log de 5 anos do que sai.
+- **V02 (ALTO):** a posição de cliente pode sair por anexo, que o portão não lê.
+
+Os dois ainda não têm teste: escrever o teste que falha antes do patch.
+
+**Orquestrador, perguntar à XP:**
+- o texto oficial do rodapé do art. 24 (destrava os modelos de produto da 20);
+- disparo em massa e leitura automatizada do Hub;
+- se agenda de vencimento conta como extrato.
+
+**Só com dado real:**
+- se a fila ou o e-mail aceitam anexo;
+- o prompt do `redigir.js`;
+- a data do último credenciamento (PEC);
+- a retenção da ponte do WhatsApp.
+
+A verificação ficou parcial: CVM, Planalto, ANBIMA e ANCORD estavam bloqueados nesta nuvem.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">20-veedha-orquestrador-e-motor.md</span> · Para 20 · Veedha · Orquestrador (modelos) e 23 · Veedha · Motor · entrega 20 <span class="cont">1019 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m9">Copiar</button><pre id="m9">Para 20 · Veedha · Orquestrador (modelos) e 23 · Veedha · Motor · entrega 20
+
+Prioridade: 1 no patch, 2 nos modelos.
+
+Artifact: &quot;Nuvem · Veedha · modelos à prova do portão&quot; https://claude.ai/artifact/AggCuoqkZi6FT2XPtKFne8
+
+**O patch 01 (F01, ALTO)** já vai no aplicar/veedha-portao.diff da triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT, junto com a 14. Não aplicar de novo.
+
+**Modelos:**
+- 30 propostas, em `MODELOS-PROPOSTOS.md`;
+- 10 candidatos a LIVRE;
+- nada vale sem a aprovação do dono, modelo por modelo.
+
+Antes de aprovar, rodar com os nomes reais de produto, na pasta do motor, já com o `modelos20/` copiado no passo da mensagem 14:
+```
+node modelos20/rodar.js --csv resultados.csv
+```
+Na nuvem, o resultado foi 30 de 30 com o patch e 28 de 30 sem ele.
+
+**Decidir:**
+- quais modelos aprovar;
+- se amplia as aberturas neutras da carga (&quot;bem vindo&quot;, &quot;vi a sua ligação&quot;).
+
+O rodapé oficial do art. 24 (pergunta à XP, entrega 19) destrava os modelos de produto. Nada sai com produto antes dele (R08).
+</pre></div></details>
+<details class="msg"><summary><span class="mono">21-fred-comercial.md</span> · Para 32 · Fred · Comercial · entrega 21 · prioridade 2 <span class="cont">1173 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m10">Copiar</button><pre id="m10">Para 32 · Fred · Comercial · entrega 21 · prioridade 2
+
+Artifact: &quot;Nuvem · Fred · publi sem risco&quot; https://claude.ai/artifact/A5BPx2ah13k8YvYArnaMjx
+
+Sem código. Não é parecer jurídico.
+
+**Mandar à agência o `checklist-10.md`.** São 10 itens antes de cada publi:
+- o anunciante pode anunciar;
+- &quot;Parceria paga&quot; e &quot;#publi&quot; no começo;
+- presente também se declara;
+- prova de toda afirmação;
+- sátira só da própria marca;
+- financeiro institucional;
+- bet com 18+ e o aviso do Ministério da Fazenda;
+- contrato antes de postar;
+- guardar a prova por 1 ano.
+
+**`anonimato.md`:** como fechar contrato sem expor o criador. O anonimato vale perante o público, não perante quem contrata.
+
+**Decidir:**
+- se aceita bet: só com operador autorizado, público adulto comprovado e as frases do Ministério da Fazenda. O credenciamento de influenciador na revisão de 2026 pode bater no anonimato.
+- a PJ do perfil: LTDA ou SLU, não MEI.
+
+**Só com dado real:**
+- o percentual de público adulto no Insights;
+- se os contratos da agência têm sigilo de identidade;
+- quem emite a nota.
+
+A verificação ficou parcial: CONAR, Planalto, gov.br, CVM, ANBIMA e Meta estavam bloqueados nesta nuvem.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">22-ozav-motor-e-hunting.md</span> · Para 13 · Ozav · Motor e CRM (DNS e script) e 16 · Ozav · Hunting (aquecimento e conteúdo) · entrega 22 · prioridade 2 <span class="cont">1013 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m11">Copiar</button><pre id="m11">Para 13 · Ozav · Motor e CRM (DNS e script) e 16 · Ozav · Hunting (aquecimento e conteúdo) · entrega 22 · prioridade 2
+
+Artifact: &quot;Nuvem · Ozav · e-mail frio sem cair no spam&quot; https://claude.ai/artifact/5xoQBMR4sW79nBwktfVgKx
+
+No PC:
+```
+pip install dnspython pytest
+python -m pytest -q test_conferir_dominio.py   # 33 ok
+python conferir_dominio.py &lt;dominio-novo&gt; --seletor &lt;seletor&gt; --bimi
+```
+
+**Antes do primeiro e-mail frio:**
+- SPF;
+- DKIM de 2048 bits;
+- DMARC com `rua`;
+- descadastro em um clique (RFC 8058), honrado em 48 h;
+- spam abaixo de 0,1%.
+
+O Gmail rejeita o que não cumpre desde nov/2025.
+
+**Hunting:** 4 semanas de aquecimento (`plano-aquecimento.csv`). Depois, até 40 por dia por caixa; para crescer, mais caixas.
+
+**Decidir:**
+- quantas caixas;
+- se usa ferramenta de aquecimento;
+- a LIA e o aviso de privacidade.
+
+**Só com dado real:**
+- o DNS do domínio novo;
+- o Postmaster depois da semana 2;
+- quantos e-mails da lista são corporativos.
+
+O Microsoft 365 corporativo não foi pesquisado.
+</pre></div></details>
+<details class="msg"><summary><span class="mono">23-fred-conteudo.md</span> · Para 31 · Fred · Conteúdo · entrega 23 · prioridade 1 <span class="cont">1181 car.</span></summary><div class="msgcorpo"><button type="button" class="copiar" data-alvo="m12">Copiar</button><pre id="m12">Para 31 · Fred · Conteúdo · entrega 23 · prioridade 1
+
+Artifact: &quot;Nuvem · Fred · legenda v2&quot; https://claude.ai/artifact/VXAfSfQDBKY6u5ScCMP5hR
+A v2 está inteira em `v2/`. O `aplicar/fred-legenda.diff` da triagem https://claude.ai/artifact/QiqEBkSYXwY2PX5pMQEMaT, aplicado sobre a v1, dá o mesmo resultado.
+
+Na pasta da v1:
+```
+patch -p1 &lt; &lt;t24&gt;/aplicar/fred-legenda.diff
+pip install faster-whisper &quot;av&lt;16&quot; pytest
+python -m pytest -q test_legenda_reels.py   # 28 ok + 1 pulado com av&lt;16
+python legenda_reels.py revisar video.mp4 --termos &quot;marca, nome, bordão&quot;
+# corrigir video.palavras.json e marcar &quot;revisado&quot;: true
+python legenda_reels.py queimar video.mp4 --prints 3 --guia
+```
+
+**Os 7 defeitos corrigidos:**
+- PyAV 19;
+- guia queimado no MP4;
+- largura da letra (0,50);
+- número partido;
+- pasta chamada `medium`;
+- base 0,25;
+- palavra sem duração.
+
+O padrão agora é o estilo B, e a revisão é obrigatória.
+
+**Decidir:** conferir a faixa direita no &quot;Reels safe zone checker&quot; da Meta.
+
+**Só com dado real:** rodar de novo os 2 vídeos de 14/10 e conferir:
+- o acerto com o medium e os termos;
+- o aviso de legenda queimada no vídeo de 26 s;
+- a quebra de linha com a Arial Black.
+</pre></div></details>
+    </div>
+  </section>
+
+  <section>
+    <h2>Limitações</h2>
+    <ul>
+      <li>As entregas 16 e 17 saíram durante a triagem e entraram nesta versão.</li>
+      <li>Os testes rodaram no Linux, com Node 22.22, não no Windows do PC. Os da VPS precisam de bash, flock e tar.</li>
+      <li>Não deu para conferir aqui:
+        <ul>
+          <li>o dreno real (<code>marcarEnviando</code>);</li>
+          <li>o <code>claude</code>, o OpenRouter e o Whisper de verdade;</li>
+          <li>o servidor: nada foi conectado nem aplicado.</li>
+        </ul>
+      </li>
+      <li>O código dos pacotes não foi republicado. Os diffs trazem só os trechos de contexto, e os testes são os das entregas.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Arquivos: <code>para-a-00.md</code>, <code>resultados.md</code> (a verificação completa), <code>aplicar/*.diff</code>, <code>aplicar/testes/</code>, <code>mensagens/</code>, <code>patches/</code> e <code>testes/</code>.</footer>
+</main>
+<script>
+document.querySelectorAll('.copiar').forEach((b) => b.addEventListener('click', () => {
+  const pre = document.getElementById(b.dataset.alvo);
+  const ok = () => { b.textContent = 'Copiado'; setTimeout(() => (b.textContent = 'Copiar'), 1500); };
+  const selecionar = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selecionado: Ctrl+C'; };
+  try { navigator.clipboard.writeText(pre.textContent).then(ok, selecionar); } catch (e) { selecionar(); }
+}));
+</script>
