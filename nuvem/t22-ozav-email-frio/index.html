@@ -1,0 +1,159 @@
+<title>Nuvem · Ozav · e-mail frio sem cair no spam</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; resumo em chips, tabelas largas com rolagem própria */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding-block: 32px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.v { font: 500 11px/1 var(--mono); padding: 3px 7px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.neutro { background: var(--code-bg); color: var(--muted); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.largo table { min-width: 760px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+a { color: var(--accent); overflow-wrap: anywhere; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nota-fonte { color: var(--muted); font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 22 · 14/10/2026</div>
+    <h1>E-mail frio sem cair no spam</h1>
+    <p class="lead">O que o Gmail, o Yahoo e a Microsoft exigem em 2025 e 2026 de quem manda e-mail em volume, o que derruba a entrega, a LGPD no e-mail frio B2B, um script que confere o DNS do domínio de prospecção e o plano de aquecimento de 4 semanas.</p>
+    <div class="chips">
+      <span class="chip ok">conferir_dominio.py: 33 testes, sem rede</span>
+      <span class="chip ok">plano de 4 semanas</span>
+      <span class="chip warn">páginas oficiais lidas só pelo trecho do buscador</span>
+      <span class="chip warn">27 buscas (teto 30)</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>O essencial</h2>
+    <ul>
+      <li><b>O Gmail rejeita desde novembro de 2025</b> o que não cumpre as regras, e o domínio novo entra num calendário acelerado.</li>
+      <li><b>Pacote mínimo desde o primeiro dia:</b>
+        <ul>
+          <li>SPF e DKIM com chave de 2048 bits, os dois alinhados ao From;</li>
+          <li>DMARC publicado com <code>rua</code>;</li>
+          <li>PTR e TLS;</li>
+          <li>descadastro em um clique (RFC 8058) e no corpo, honrado em 48 h.</li>
+        </ul>
+      </li>
+      <li><b>Taxa de spam abaixo de 0,1% no Postmaster, nunca 0,3%.</b> Passou de 0,3%, o Gmail não ajuda mais.</li>
+      <li><b>O que derruba é reputação, não palavra.</b> Texto simples, 0 ou 1 link, sem anexo, sem imagem e sem pixel de abertura. "Palavras-gatilho" são, em grande parte, mito.</li>
+      <li><b>LGPD:</b> a base é o legítimo interesse, com LIA escrita, só dado corporativo, origem registrada, transparência no primeiro e-mail e opção de sair em todos. A ANPD nunca falou de prospecção B2B por e-mail.</li>
+      <li><b>Microsoft 365 corporativo</b>, onde está o público B2B, tem filtragem própria, que não foi pesquisada.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Os três provedores</h2>
+    <div class="tbl largo"><table>
+      <thead><tr><th>Requisito</th><th>Gmail</th><th>Yahoo</th><th>Microsoft (Outlook.com)</th></tr></thead>
+      <tbody>
+        <tr><td>Volume a partir de</td><td>~5.000 por dia</td><td>sem número nos trechos</td><td>5.000 por dia</td></tr>
+        <tr><td>DKIM</td><td>1024 ou mais, 2048 recomendada</td><td>1024 ou mais</td><td>tem de passar</td></tr>
+        <tr><td>DMARC</td><td>p=none aceito, alinhado</td><td>p=none ou mais, rua recomendado</td><td>p=none no mínimo; reject recomendado</td></tr>
+        <tr><td>Um clique</td><td>obrigatório (RFC 8058) desde 01/06/2024</td><td>POST recomendado, link no corpo</td><td>recomendado</td></tr>
+        <tr><td>Descadastro</td><td>48 h</td><td>2 dias</td><td>não encontrado</td></tr>
+        <tr><td>Spam</td><td class="num">&lt; 0,1%, nunca 0,3%</td><td class="num">&lt; 0,3%</td><td>não encontrado</td></tr>
+        <tr><td>Endurecimento</td><td>rejeição desde nov/2025</td><td>gradual em 2024</td><td>Lixo Eletrônico desde 05/05/2025; data da rejeição 5.7.515 em conflito</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Plano de aquecimento, por caixa</h2>
+    <p>Nenhuma fonte oficial publica tabela semanal. Os números são a faixa dos fornecedores. Os limites de parada são do Gmail.</p>
+    <div class="tbl largo"><table>
+      <thead><tr><th>Semana</th><th>Aquecimento/dia</th><th>Frios/dia</th><th>Teto/dia</th><th>Pare se</th></tr></thead>
+      <tbody>
+        <tr><td>0 (antes)</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>o <code>conferir_dominio.py</code> acusar FALTA</td></tr>
+        <tr><td>1</td><td class="num">5 → 15</td><td class="num">0</td><td class="num">15</td><td>erro de autenticação, bounce acima de 2%</td></tr>
+        <tr><td>2</td><td class="num">15 → 25</td><td class="num">0</td><td class="num">25</td><td>spam acima de 0,1%</td></tr>
+        <tr><td>3</td><td class="num">~20</td><td class="num">5 → 10</td><td class="num">30</td><td>bounce acima de 2%, reclamação, adiamento 4.7.x</td></tr>
+        <tr><td>4</td><td class="num">15 a 20</td><td class="num">15 → 25</td><td class="num">40</td><td>spam a partir de 0,1%; tudo para em 0,3%</td></tr>
+        <tr><td>5 em diante</td><td class="num">10 a 15</td><td class="num">25 a 30</td><td class="num">40</td><td>os mesmos; para escalar, mais caixas, nunca mais volume por caixa</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>O script</h2>
+<pre>pip install dnspython
+python conferir_dominio.py dominio-de-prospeccao.com.br --seletor google --bimi</pre>
+    <p>Diz OK, ATENÇÃO, FALTA ou ERRO para cada item:</p>
+    <ul>
+      <li><b>SPF:</b> um registro só; <code>-all</code> ou <code>~all</code>; até 10 consultas e no máximo 2 vazias.</li>
+      <li><b>DKIM:</b> o tamanho da chave, lido do DER.</li>
+      <li><b>DMARC:</b> a política, o <code>pct</code>, o <code>rua</code> e a herança do domínio organizacional.</li>
+      <li><b>MX:</b> ausente ou nulo.</li>
+      <li><b>BIMI.</b></li>
+      <li><b>Alinhamento:</b> o do Return-Path.</li>
+    </ul>
+    <p>Se o DNS da máquina não acha nem o MX do gmail.com, o script diz que o problema é a rede, e não acusa o domínio. Os 33 testes usam um resolvedor falso.</p>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li>Nenhuma página oficial abriu nesta rede. Ficaram bloqueados support.google.com, senders.yahooinc.com, techcommunity.microsoft.com, learn.microsoft.com, gov.br, planalto.gov.br, rfc-editor.org, ietf.org e outros. Tudo veio do trecho do buscador, marcado em <code>pesquisa.md</code>.</li>
+      <li>O DNS de saída desta nuvem devolve "não existe" para tudo. O script não consultou nenhum domínio real aqui.</li>
+      <li>A data em que a Microsoft começou a rejeitar com 5.7.515 está em conflito entre as fontes. A filtragem do Microsoft 365 corporativo não foi pesquisada.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Arquivos</h2>
+    <div class="tbl"><table><tbody>
+      <tr><td><code>para-a-00.md</code></td><td>Resumo para despachar</td></tr>
+      <tr><td><code>regras.md</code></td><td>Provedores, conteúdo, LGPD e BIMI, com a verificação de cada item</td></tr>
+      <tr><td><code>plano-aquecimento.csv</code>, <code>.md</code></td><td>As 4 semanas e o que vem depois</td></tr>
+      <tr><td><code>conferir_dominio.py</code>, <code>test_conferir_dominio.py</code>, <code>LEIA-ME.md</code></td><td>O script, os testes e como usar</td></tr>
+      <tr><td><code>pesquisa.md</code></td><td>A pesquisa completa, com as URLs</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Nenhuma conta, nenhum e-mail enviado, nenhum dado pessoal.</footer>
+</main>
