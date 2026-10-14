@@ -1,0 +1,142 @@
+<title>Nuvem · Ozav · enriquecer site da lista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: relatório de uma coluna (~70ch), mesmo sistema visual da série "Nuvem"; entregáveis no topo, detalhes abaixo */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --fg: #17222b; --muted: #55636e; --line: #d9e1e6;
+  --accent: #0d6b6e; --ok: #1f7a3d; --ok-bg: #e3f3e8; --warn: #9a5b00; --warn-bg: #fdf0d9;
+  --bad: #a3271f; --bad-bg: #fbe5e3; --code-bg: #eef2f4;
+  --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --fg: #e4ebef; --muted: #9aa9b3; --line: #2a3943;
+  --accent: #5cc4c0; --ok: #6fd18e; --ok-bg: #173523; --warn: #f0b85a; --warn-bg: #3a2c12;
+  --bad: #f08a80; --bad-bg: #3d1d1a; --code-bg: #1f2b33; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.6; padding: 32px 16px 56px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 10px; min-width: 0; }
+.lead { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); }
+.warn { background: var(--warn-bg); color: var(--warn); }
+.bad { background: var(--bad-bg); color: var(--bad); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 12px/1.3 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); white-space: nowrap; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.5 var(--mono); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; max-width: 70ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fact { border-top: 2px solid var(--accent); padding-top: 8px; display: grid; gap: 2px; }
+.fact b { font: 600 22px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 13px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Nuvem · Ozav · tarefa 6 de 10 · 14/10/2026</div>
+    <h1>Enriquecer site da lista</h1>
+    <p class="lead">Um script que lê o <code>top1000.csv</code> da lista quente e visita o site de cada empresa com domínio próprio: a home e até 3 páginas (contato, sobre, carreiras e equipe). Sem IA, ele tira de lá os e-mails de função, os telefones, a página da empresa no LinkedIn, sinais de comércio exterior no texto e o idioma. Respeita o robots.txt, faz no máximo 1 requisição por segundo por domínio e nunca grava nome de pessoa.</p>
+    <div class="chips">
+      <span class="chip ok">10 de 10 testes passaram</span>
+      <span class="chip ok">Crawl4AI cabe em 4 GB (medido)</span>
+      <span class="chip warn">não rodado em sites reais</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Entregáveis</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Arquivo</th><th>Status</th><th>O que é</th></tr></thead>
+      <tbody>
+        <tr><td><code>enriquecer_site.py</code></td><td><span class="chip ok">pronto</span></td><td>Lê o <code>top1000.csv</code> e grava <code>enriquecido.csv</code> (todas as linhas da entrada mais 31 colunas), <code>relatorio.md</code> e um cache para retomar a rodada.</td></tr>
+        <tr><td><code>test_enriquecer_site.py</code></td><td><span class="chip ok">10 de 10</span></td><td>HTML sintético, transporte e relógio falsos para o robots.txt e o ritmo, uma rodada completa com checagem de privacidade, HTTP real num servidor local e o motor Crawl4AI renderizando JavaScript.</td></tr>
+        <tr><td><code>LEIA-ME.md</code></td><td><span class="chip ok">pronto</span></td><td>Colunas, como rodar, a escolha do motor, as regras de coleta, a privacidade e as limitações.</td></tr>
+        <tr><td><code>exemplo-enriquecido.csv</code><br><code>exemplo-relatorio.md</code></td><td><span class="chip warn">sintético</span></td><td>A saída de verdade do script sobre os sites <b>inventados</b> do teste, só para mostrar o formato. Nenhuma empresa real.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>O que sai de cada site</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Coluna</th><th>Regra</th></tr></thead>
+      <tbody>
+        <tr><td><code>emails_funcao</code></td><td>E-mail que aparece no site e cujo nome antes do @ é só palavra de função: contato@, comercial@, financeiro2@, rh.sp@. Os de outro domínio vão para uma coluna à parte.</td></tr>
+        <tr><td><code>telefones_br</code>, <code>telefones_exterior</code></td><td>Validados pela biblioteca <code>phonenumbers</code>, depois de tirar CNPJ e CEP do texto. Telefone fora do Brasil já é um sinal.</td></tr>
+        <tr><td><code>linkedin_empresa</code></td><td>Só link <code>/company/</code>, <code>/showcase/</code> ou <code>/school/</code>. O LinkedIn não é visitado.</td></tr>
+        <tr><td>sinais</td><td><code>importa</code>, <code>exporta</code>, <code>comex</code>, <code>matriz_exterior</code> (com <code>matriz_em</code>), <code>escritorios</code> e <code>escritorio_exterior</code>, <code>global</code>, <code>clientes_exterior</code>, <code>menciona_cambio</code> e <code>vagas_alvo</code> (só na página de carreiras), somados em <code>n_sinais</code>.</td></tr>
+        <tr><td><code>evidencias</code></td><td>Os termos fixos que dispararam cada sinal, por exemplo <code>exporta: exportamos | global: em 12 paises</code>. Nunca vai trecho do site.</td></tr>
+        <tr><td><code>idioma</code></td><td>pt, en, es ou indefinido, pela contagem de palavras típicas de cada língua, mais o <code>lang</code> do HTML e os <code>hreflang</code>.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Crawl4AI ou motor leve</h2>
+    <p>A tarefa pedia o Crawl4AI como biblioteca se ele coubesse em 4 GB. Medi aqui o Crawl4AI 0.9.4 com um Chromium headless num site sintético local, somando a memória de todos os processos:</p>
+    <div class="facts">
+      <div class="fact"><b>~1,2 GB</b><span>pico do Crawl4AI + Chrome em 40 páginas, 0,26 s cada</span></div>
+      <div class="fact"><b>57 MB</b><span>pico do motor leve (requests + selectolax) nas mesmas 40 páginas</span></div>
+      <div class="fact"><b>832 MB</b><span>de disco do pacote Crawl4AI instalado, sem contar o Chromium</span></div>
+    </div>
+    <p>Cabe em 4 GB. Por isso o padrão (<code>--motor auto</code>) usa o Crawl4AI quando ele está instalado, porque ele lê site feito em JavaScript. Quando não está, usa o motor leve. Nos dois, o robots.txt, o ritmo, o teto e a extração são do nosso código. Duas pegadinhas do Crawl4AI ficaram resolvidas: ele marca uma página de contato curta e legítima como "bloqueada por anti-bot", e o HTML que ele devolve tem de ser lido como UTF-8.</p>
+  </section>
+
+  <section>
+    <h2>Para rodar no PC</h2>
+<pre>pip install requests selectolax phonenumbers
+python enriquecer_site.py C:/Users/loren/ozav-cnpj/saida/2026-10/top1000.csv --limite 20   # teste
+python enriquecer_site.py C:/Users/loren/ozav-cnpj/saida/2026-10/top1000.csv              # tudo
+# opcional, para ler site em JavaScript:
+pip install crawl4ai &amp;&amp; crawl4ai-setup
+python enriquecer_site.py …/top1000.csv --motor crawl4ai --workers 2</pre>
+    <p>Se a rodada cair, o mesmo comando continua de onde parou (o cache guarda só o resultado filtrado). Pela conta, 500 domínios levam de 10 a 15 minutos com 6 em paralelo. Isso é estimativa, não medição em site real.</p>
+  </section>
+
+  <section>
+    <h2>Como o teste prova as regras</h2>
+    <ul>
+      <li><b>robots.txt:</b> <code>/equipe</code> proibida nunca é pedida, o site com <code>Disallow: /</code> só tem o robots.txt lido e um robots.txt com 503 vira "robots.txt inacessível" sem nenhuma página pedida.</li>
+      <li><b>Ritmo:</b> com relógio falso, todas as requisições ao mesmo domínio ficam a 1 s ou mais umas das outras, e a 2 s ou mais depois que o <code>Crawl-delay: 2</code> é lido. O redirecionamento conta como requisição.</li>
+      <li><b>Teto:</b> só 3 páginas internas, uma por categoria, sem PDF nem blog. Com o teto em 2, só a home e o contato.</li>
+      <li><b>Privacidade:</b> o site sintético tem nome de pessoa, e-mail pessoal dentro e fora de <code>&lt;script&gt;</code> e link <code>/in/</code>. O teste confere byte a byte que nada disso chega ao <code>enriquecido.csv</code>, ao <code>relatorio.md</code> nem ao cache.</li>
+      <li><b>Falsos positivos:</b> "exportação de relatórios", "importação de planilhas" e "o que importa" não contam. "Escritórios em São Paulo e Miami, liderados por Orlando" dá São Paulo e Miami.</li>
+      <li><b>JavaScript:</b> um texto que só aparece depois do JavaScript fica fora do motor leve e entra no motor Crawl4AI (teste rodado aqui com Chrome via CDP).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitações e o que não deu para verificar</h2>
+    <ul>
+      <li><b>Não rodado em sites reais.</b> O <code>top1000.csv</code> real ainda não existe (a base da Receita estava baixando no PC) e a rede desta nuvem bloqueia a maior parte dos domínios. Os números de memória são de um site sintético local; site real pesa mais.</li>
+      <li>As regras são simples de propósito: "global" dá muito falso positivo, a lista de lugares é fechada (Lima ficou de fora porque é sobrenome comum) e outros usos de "importação" em software podem escapar.</li>
+      <li>No motor leve, site feito só em JavaScript aparece como "ok, pouco texto". Plataforma de vagas externa (Gupy etc.) é registrada, mas não é visitada.</li>
+      <li>O <code>urllib.robotparser</code> aplica a primeira regra que casa, não a mais específica como pede a RFC 9309.</li>
+      <li>Telefone publicado pela empresa entra sem nome. Em site pequeno ele pode ser o celular do dono, então trate-o como contato comercial.</li>
+    </ul>
+  </section>
+
+  <footer>Gerado numa sessão de nuvem do Claude Code. Arquivos deste artifact: <code>enriquecer_site.py</code>, <code>test_enriquecer_site.py</code>, <code>LEIA-ME.md</code>, <code>exemplo-enriquecido.csv</code> e <code>exemplo-relatorio.md</code>.</footer>
+</main>
